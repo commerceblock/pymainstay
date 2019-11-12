@@ -18,7 +18,7 @@ setup(
     long_description_content_type='text/markdown',
 
     # The project's main homepage.
-    url='https://github.com/commerceblock/py-mainstay',
+    url='https://github.com/commerceblock/pymainstay',
 
     # Author details
     author='CommerceBlock',

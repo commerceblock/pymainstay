@@ -1,14 +1,3 @@
-# Copyright (C) 2016-2018 The OpenTimestamps developers
-#
-# This file is part of the OpenTimestamps Client.
-#
-# It is subject to the license terms in the LICENSE file found in the top-level
-# directory of this distribution.
-#
-# No part of the OpenTimestamps Client, including this file, may be copied,
-# modified, propagated, or distributed except according to the terms contained
-# in the LICENSE file.
-
 import sys
 import json
 import argparse
@@ -167,23 +156,78 @@ def update_proofseq(service_url,seq,slot,txid):
                                 "ops":sproof["response"]["merkleproof"]["ops"],
                                 "date":sproof["response"]["attestation"]["inserted_at"],
                                 "height":'0'}
-                    seq.insert(ip,addproof)
-                    ip = ip + 1
+                    if sproof["confirmed"]:
+                        seq.insert(ip,addproof)
+                        ip = ip + 1
                 else:
                     return seq
             except:
                 logging.error("get commit proof error")
-                return False             
+                return False
             if sproof["response"]["attestation"]["txid"] == txid:
                 return seq
     return seq
 
 def attest_command(args):
 
-    print(os.getcwd())
-    print(args.slot)
-    print(args.filename)
-    print(APPDIRS.user_data_dir)
+    settings = get_settings(args)
+
+    if args.slot:
+        slot = str(args.slot)
+    else:
+        try:
+            slot = str(settings["slot"])
+        except:
+            logging.error("Missing slot ID in config and argument")
+            sys.exit(1)
+
+    if args.api_token:
+        token = args.api_token
+    else:
+        try:
+            token = settings["api_token"]
+        except:
+            logging.error("Missing API token in config and argument")
+            sys.exit(1)
+
+    if args.privkey:
+        privkey = args.privkey
+    else:
+        try:
+            privkey = settings["privkey"]
+        except:
+            privkey = None
+            logging.info("No private key: unsigned commitment")
+
+    if args.commitment:
+        if len(args.commitment) != 64:
+            logging.error("Invlaid commitment string: incorrect length")
+            sys.exit(1)
+        if not is_hex(args.commitment):
+            logging.error("Invlaid commitment string: not hex")
+            sys.exit(1)
+        commitment = args.commitment
+
+    headers = {'Content-Type': 'application/json'}
+    payload = {"commitment": commitment,"position":slot,"token":token}
+    payload_enc = str(base64.b64encode(json.dumps(payload).encode('utf-8')).decode('ascii'))
+
+    if privkey:
+        key = ECPrivkey(bytes.fromhex(privkey))
+        message = bytes.fromhex(commitment)
+        sig = key.sign_message(message, True)
+        sig_string = str(base64.b64encode(sig).decode('ascii'))
+    else:
+        sig_string = ""
+
+    data = {"X-MAINSTAY-PAYLOAD":payload_enc,"X-MAINSTAY-SIGNATURE":sig_string}
+    print(data)
+    response = requests.post(args.service_url+'/api/v1/commitment/send', headers=headers, data=json.dumps(data))
+    rdata = response.json()
+    if 'error' in rdata:
+        logging.error(rdata["error"])
+    else:
+        logging.info("Attestation sent")
 
 def fetch_command(args):
 
@@ -549,13 +593,14 @@ def config_command(args):
     if args.privkey:
         settings["privkey"] = args.privkey
 
+    if args.get:
+       print(settings)
+
     save_settings(settings)
 
 def keygen_command(args):
 
     settings = get_settings(args)
-
-    print(settings)
 
     if args.gen:
         entropy = args.gen

@@ -1,14 +1,3 @@
-# Copyright (C) 2016-2018 The OpenTimestamps developers
-#
-# This file is part of the OpenTimestamps Client.
-#
-# It is subject to the license terms in the LICENSE file found in the top-level
-# directory of this distribution.
-#
-# No part of the OpenTimestamps Client, including this file, may be copied,
-# modified, propagated, or distributed except according to the terms contained
-# in the LICENSE file.
-
 import sys
 import json
 import argparse
@@ -144,13 +133,10 @@ def verify_p2c_commitment(proof, tx):
         logging.warning('WARNING: staychain TxID '+sproof["txid"]+' has more than one output')
     try:
         commitment = proof['merkle_root']
-        print(commitment)
     except:
         logging.error('ERROR: slot proof malformation')
         sys.exit(1)
     commitment_path = get_path_from_commitment(bytes.fromhex(rev_hex(commitment)))
-    print(tweak_script(commitment_path).hex())
-    print(script_addr)
     tweaked_addr = 'a914' + tweak_script(commitment_path).hex() + '87'
     if script_addr == tweaked_addr:
         return True
@@ -179,8 +165,8 @@ def verify_commitment(slot,sproof,bitcoin_node):
     pv = verify_slot_proof(slot,sproof)
     vins = []
     if not pv:
-            logging.error('ERROR: Slot-proof verification failed')
-            sys.exit(1)
+        logging.error('ERROR: Slot-proof verification failed')
+        sys.exit(1)
     if '@' in bitcoin_node:
         #connect via RPC
         if bitcoin_node[0:6] != 'http://':

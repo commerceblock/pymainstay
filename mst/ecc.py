@@ -1,27 +1,4 @@
-# -*- coding: utf-8 -*-
-#
-# Electrum - lightweight Bitcoin client
 # Copyright (C) 2018 The Electrum developers
-#
-# Permission is hereby granted, free of charge, to any person
-# obtaining a copy of this software and associated documentation files
-# (the "Software"), to deal in the Software without restriction,
-# including without limitation the rights to use, copy, modify, merge,
-# publish, distribute, sublicense, and/or sell copies of the Software,
-# and to permit persons to whom the Software is furnished to do so,
-# subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
 
 import base64
 import hmac
@@ -363,31 +340,10 @@ class ECPrivkey(ECPubkey):
             raise Exception('Sanity check verifying our own signature failed.')
         return sig
 
-    def sign_transaction(self, hashed_preimage: bytes) -> bytes:
-        return self.sign(hashed_preimage,
-                         sigencode=der_sig_from_r_and_s,
-                         sigdecode=get_r_and_s_from_der_sig)
-
     def sign_message(self, message: bytes, is_compressed: bool) -> bytes:
-        def bruteforce_recid(sig_string):
-            for recid in range(4):
-                sig65 = construct_sig65(sig_string, recid, is_compressed)
-                try:
-                    self.verify_message_for_address(sig65, message)
-                    return sig65, recid
-                except Exception as e:
-                    print(e)
-                    continue
-            else:
-                raise Exception("error: cannot sign message. no recid fits..")
 
-        msg_hash = Hash(message)
         sig_string = self.sign(message,
                                sigencode=der_sig_from_r_and_s,
                                sigdecode=get_r_and_s_from_der_sig)
-#        sig65, recid = bruteforce_recid(sig_string)
         return sig_string
 
-def construct_sig65(sig_string, recid, is_compressed):
-    comp = 4 if is_compressed else 0
-    return bytes([27 + recid + comp]) + sig_string

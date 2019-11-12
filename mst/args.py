@@ -24,9 +24,15 @@ def parse_msc_args(raw_args):
     parser_attest = subparsers.add_parser('attest', aliases=['a'],
                         help='Commit data to a Mainstay slot')
 
-    parser_attest.add_argument('-f', '--file', type=str,
+    attest_group  = parser_attest.add_mutually_exclusive_group()
+
+    attest_group.add_argument('-f', '--file', type=str,
                               dest='filename',
-                              help="Attest the SHA256 hash of the specified file")
+                              help="Attest the SHA256 hash of the specified file.")
+
+    attest_group.add_argument("-c","--commit", type=str,
+                              dest='commitment',
+                              help="Hex string of the 32 bytes commitment.")
 
     parser_attest.add_argument("-s", "--slot", type=int, default=0,
                               dest='slot',
@@ -82,7 +88,7 @@ def parse_msc_args(raw_args):
                               dest='txid',
                               help="Fetch proof sequence from the latest to the specified staychain TxID. If 0, the proof will go back to the start of the slot.")
 
-    type_group.add_argument("-u","--update", type=str,
+    type_group.add_argument("-u","--update", action='store_true', default=False,
                               dest='update',
                               help="Update stored proof sequence to include latest slot proofs. ")    
 
@@ -179,6 +185,10 @@ def parse_msc_args(raw_args):
                               dest='privkey',
                               help="Private key for signing the commitment.")
 
+    parser_config.add_argument("-g","--get", action='store_true', default=False,
+                              dest='get',
+                              help="Print config settings.")
+
     # key generation
     parser_keygen = subparsers.add_parser('keygen', aliases=['k'],
                               help='Generate signing keys for attestations')
@@ -191,11 +201,11 @@ def parse_msc_args(raw_args):
 
     keygen_group.add_argument("-p", "--public", type=str,
                               dest='public',
-                              help="Calculate the secp256k1 EC public key from the supplied hex private key")
+                              help="Calculate the secp256k1 EC public key from the supplied hex private key.")
 
     keygen_group.add_argument("-s", "--sign", type=str,
                               dest='sign',
-                              help="Produce an ECDSA signature for the supplied string.")
+                              help="Produce a DER encoded ECDSA signature for the supplied commitment.")
 
 
     parser_attest.set_defaults(cmd_func=mst.cmds.attest_command)
