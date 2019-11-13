@@ -7,15 +7,12 @@ import logging
 import appdirs
 import os
 import time
-import urllib.request
 import requests
 import threading
+import hashlib
 import math
 import base64
-from queue import Queue, Empty
-
 from binascii import hexlify
-
 import mst
 import mst.rpchost as rpc
 from mst.verify import verify_commitment
@@ -23,6 +20,15 @@ from mst.ecc import key_gen, ECPrivkey
 
 
 APPDIRS = appdirs.AppDirs('msc','mainstay')
+
+def sha256sum(filename):
+    h  = hashlib.sha256()
+    b  = bytearray(128*1024)
+    mv = memoryview(b)
+    with open(filename, 'rb', buffering=0) as f:
+        for n in iter(lambda : f.readinto(mv), 0):
+            h.update(mv[:n])
+    return h.hexdigest()
 
 def is_hex(s):
     try:
@@ -48,7 +54,7 @@ def save_settings(settings):
     filename = APPDIRS.user_data_dir + '/config.json'
     try:
         with open(filename, 'w') as f:
-            json.dump(settings,f)
+            json.dump(settings,f, indent=2, sort_keys=True)
     except:
         logging.error("Write config error")
 
@@ -67,7 +73,7 @@ def save_proofseq(slot,seq):
     filename = APPDIRS.user_data_dir + "/slot_" + str(slot) + "_sequence.msp"
     try:
         with open(filename, 'w') as f:
-            json.dump(seq,f)
+            json.dump(seq,f, indent=2, sort_keys=True)
     except:
         logging.error("Write proof sequence error")
 
@@ -208,8 +214,20 @@ def attest_command(args):
             sys.exit(1)
         commitment = args.commitment
 
+    if args.filename:
+        if args.filename[0] == '/':
+            filename = args.file
+        else:
+            filename = os.getcwd() + '/' + args.filename
+        try:
+            commitment = sha256sum(filename)
+        except:
+            logging.error("ERROR: could not open specified file")
+            sys.exit(1)
+        print("SHA256("+args.filename+"): "+commitment)
+
     headers = {'Content-Type': 'application/json'}
-    payload = {"commitment": commitment,"position":slot,"token":token}
+    payload = {"commitment":commitment,"position":slot,"token":token}
     payload_enc = str(base64.b64encode(json.dumps(payload).encode('utf-8')).decode('ascii'))
 
     if privkey:
@@ -221,7 +239,6 @@ def attest_command(args):
         sig_string = ""
 
     data = {"X-MAINSTAY-PAYLOAD":payload_enc,"X-MAINSTAY-SIGNATURE":sig_string}
-    print(data)
     response = requests.post(args.service_url+'/api/v1/commitment/send', headers=headers, data=json.dumps(data))
     rdata = response.json()
     if 'error' in rdata:
@@ -271,7 +288,7 @@ def fetch_command(args):
         if args.filename and sproof:
             writetofile(sproof,args.filename)
         if args.output and sproof:
-            print(sproof)     
+            print(json.dumps(sproof, indent=2, sort_keys=True))
         return True
 
     if args.list:
@@ -291,7 +308,7 @@ def fetch_command(args):
         if args.filename and sproof:
             writetofile(seq,args.filename)
         if args.output and sproof:
-            print(seq)
+            print(json.dumps(seq, indent=2, sort_keys=True))
 
     if args.txid:
         if args.txid == '0':
@@ -311,7 +328,7 @@ def fetch_command(args):
         if args.filename and seq:
             writetofile(seq,args.filename)
         if args.output and seq:
-            print(seq)
+            print(json.dumps(seq, indent=2, sort_keys=True))
         save_proofseq(slot,seq)
         return True
 
@@ -327,7 +344,7 @@ def fetch_command(args):
         if args.filename and seq:
             writetofile(seq[0:-olen],args.filename)
         if args.output and seq:
-            print(seq[0:-olen])
+            print(json.dumps(seq[0:-olen], indent=2, sort_keys=True))
 
 def verify_command(args):
 
@@ -594,7 +611,8 @@ def config_command(args):
         settings["privkey"] = args.privkey
 
     if args.get:
-       print(settings)
+       print(json.dumps(settings, indent=2, sort_keys=True))
+       print("Data directory: "+APPDIRS.user_data_dir)
 
     save_settings(settings)
 
