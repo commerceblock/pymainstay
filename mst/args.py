@@ -127,7 +127,7 @@ def parse_msc_args(raw_args):
                               dest='txid',
                               help="Verify that the proof sequence is committed to the staychain containing TxID")
 
-    parser_verify.add_argument("-l","--list", type=str,
+    verify_group.add_argument("-l","--list", type=str,
                               dest='list',
                               help="Verify the list of comma separated commitments against the sequence proof")
 

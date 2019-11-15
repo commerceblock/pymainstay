@@ -140,7 +140,7 @@ def update_proofseq(service_url,seq,slot,txid):
     try:
         np = math.ceil(pp["pages"])
     except:
-        logging.error("get position proofs http error")
+        logging.error("ERROR: get position proofs http error")
         return False        
     ip = 0
     for page in range(np):
@@ -149,18 +149,18 @@ def update_proofseq(service_url,seq,slot,txid):
                 rstring = "/api/v1/position?position="+str(slot)+"&page="+str(page+1)
                 pp = get_mainstay_api(service_url,rstring)
             except:
-                logging.error("get position proofs page http error")
+                logging.error("ERROR: get position proofs page http error")
                 return False
-        for com in pp["data"]:
+        for sproof in pp["data"]:
             try:
-                rstring = "/api/v1/commitment/commitment?commitment="+com["commitment"]
-                sproof = get_mainstay_api(service_url,rstring)
-                if sproof["response"]["attestation"]["txid"] != top_txid:
-                    addproof = {"txid":sproof["response"]["attestation"]["txid"],
-                                "commitment":sproof["response"]["merkleproof"]["commitment"],
-                                "merkle_root":sproof["response"]["merkleproof"]["merkle_root"],
-                                "ops":sproof["response"]["merkleproof"]["ops"],
-                                "date":sproof["response"]["attestation"]["inserted_at"],
+                if sproof["txid"] == txid:
+                    return seq
+                if sproof["txid"] != top_txid:
+                    addproof = {"txid":sproof["txid"],
+                                "commitment":sproof["commitment"],
+                                "merkle_root":sproof["merkle_root"],
+                                "ops":sproof["ops"],
+                                "date":sproof["date"],
                                 "height":'0'}
                     if sproof["confirmed"]:
                         seq.insert(ip,addproof)
@@ -168,10 +168,8 @@ def update_proofseq(service_url,seq,slot,txid):
                 else:
                     return seq
             except:
-                logging.error("get commit proof error")
+                logging.error("ERROR: get commit proof error")
                 return False
-            if sproof["response"]["attestation"]["txid"] == txid:
-                return seq
     return seq
 
 def attest_command(args):
@@ -330,6 +328,9 @@ def fetch_command(args):
         if args.output and seq:
             print(json.dumps(seq, indent=2, sort_keys=True))
         save_proofseq(slot,seq)
+        print("Sequence length: "+str(len(seq)))
+        print("    Start: "+seq[-1]["date"])
+        print("    End: "+seq[0]["date"])
         return True
 
     if args.update:
@@ -345,6 +346,10 @@ def fetch_command(args):
             writetofile(seq[0:-olen],args.filename)
         if args.output and seq:
             print(json.dumps(seq[0:-olen], indent=2, sort_keys=True))
+        print("Added "+str(len(seq)-olen)+" proofs")
+        print("Sequence length: "+str(len(seq)))
+        print("    Start: "+seq[-1]["date"])
+        print("    End: "+seq[0]["date"])
 
 def verify_command(args):
 
@@ -372,7 +377,7 @@ def verify_command(args):
         txid_base = args.txid
     else:
         try:
-            txid_base = settings["slot"]
+            txid_base = settings["txid"]
         except:
             txid_base = None
 
@@ -417,43 +422,6 @@ def verify_command(args):
         logging.error("No proof sequence to verify")
         sys.exit(1)
 
-    verout = []
-    nseq = []
-    txin = None
-    stxid = None
-    schain = []
-    #verify proof sequence against bitcoin staychain
-    for sproof in seq:
-        if txin:
-            if sproof["txid"] not in txin:
-                logging.error("TxID "+sproof["txid"]+ "not input to "+stxid)
-                sys.exit(1)
-        ver,txin = verify_commitment(slot,sproof,bitcoin_node)
-        stxid = sproof["txid"]
-        verout.append(ver)
-        logging.debug("Verified commitment "+ver[0]+" in slot "+str(slot)+" in TxID "+ver[1])
-        logging.debug("In Bitcoin block "+ver[2]+" height "+ver[3]+" at "+ver[4])
-        sproof["height"] = ver[3]
-        nseq.append(sproof)
-        schain.append(sproof["txid"])
-
-    if args.proof:
-        if args.proof == '0':
-            save_proofseq(slot,nseq)
-
-    # verify staychain txid
-    if txid_base:
-        if txid_base in schain:
-            print("Verified proof sequence against staychain "+txid_base+" slot "+str(slot)+"\n")
-        else:
-            logging.error("Proof sequence not on specified staychain")
-            sys.exit(1)
-    else:
-        print("Verified proof sequence\n")
-
-    print("End commitment in block "+verout[0][2]+" height "+verout[0][3]+" at "+verout[0][4])
-    print("Start commitment in block "+verout[-1][2]+" height "+verout[-1][3]+" at "+verout[-1][4])
-
     if args.list:
         commitment_list = [item for item in args.list.split(',')]
         for commitment in commitment_list:
@@ -471,6 +439,44 @@ def verify_command(args):
                 logging.error("Commitment list sequence missmatch at position "+str(itr))
                 sys.exit(1)
         print("Verified proof sequence against commitment list")
+        return True
+
+    verout = []
+    nseq = []
+    txin = None
+    stxid = None
+    schain = []
+    #verify proof sequence against bitcoin staychain
+    for sproof in seq:
+        if txin:
+            if sproof["txid"] not in txin:
+                logging.error("TxID "+sproof["txid"]+" not input to "+stxid)
+                sys.exit(1)
+        ver,txin = verify_commitment(slot,sproof,bitcoin_node)
+        stxid = sproof["txid"]
+        verout.append(ver)
+        logging.debug("Verified commitment "+ver[0]+" in slot "+str(slot)+" in TxID "+ver[1])
+        logging.debug("In Bitcoin block "+ver[2]+" height "+ver[3]+" at "+ver[4])
+        sproof["height"] = ver[3]
+        nseq.append(sproof)
+        schain.append(sproof["txid"])
+
+    if args.proof:
+        if args.proof == '0':
+            save_proofseq(slot,nseq)
+
+    # verify staychain txid
+    if txid_base:
+        if txid_base in schain or txid_base in txin:
+            print("Verified proof sequence against staychain "+txid_base+" slot "+str(slot)+"\n")
+        else:
+            logging.error("Proof sequence not on specified staychain")
+            sys.exit(1)
+    else:
+        print("Verified proof sequence\n")
+
+    print("Start commitment in block "+verout[-1][2]+" height "+verout[-1][3]+" at "+verout[-1][4])
+    print("End commitment in block "+verout[0][2]+" height "+verout[0][3]+" at "+verout[0][4])
 
 def sync_command(args):
 
