@@ -160,7 +160,7 @@ def parse_msc_args(raw_args):
 
     parser_config.add_argument("--url", type=str,
                               dest='service_url',
-                              default="mainstay.xyz",
+                              default="https://mainstay.xyz",
                               help="URL for the Mainstay connector service. Default: %(default)s")
 
     parser_config.add_argument("-s", "--slot", type=int, default=0,
@@ -207,6 +207,22 @@ def parse_msc_args(raw_args):
                               dest='sign',
                               help="Produce a DER encoded ECDSA signature for the supplied commitment.")
 
+    # status and info
+    parser_info = subparsers.add_parser('info', aliases=['i'],
+                              help='Mainstay service status information')
+
+    parser_info.add_argument("-s", "--slot", type=int, default=0,
+                              dest='slot',
+                              help="Specify the slot position index")
+
+    parser_info.add_argument("-f", "--file", type=str,
+                              dest='filename',
+                              help="Write the staychain base into a commit file for export")
+
+    parser_info.add_argument("--url", type=str,
+                              dest='service_url',
+                              default="https://mainstay.xyz",
+                              help="URL for the Mainstay connector service. Default: %(default)s")
 
     parser_attest.set_defaults(cmd_func=mst.cmds.attest_command)
     parser_fetch.set_defaults(cmd_func=mst.cmds.fetch_command)
@@ -214,6 +230,7 @@ def parse_msc_args(raw_args):
     parser_sync.set_defaults(cmd_func=mst.cmds.sync_command)
     parser_config.set_defaults(cmd_func=mst.cmds.config_command)
     parser_keygen.set_defaults(cmd_func=mst.cmds.keygen_command)
+    parser_info.set_defaults(cmd_func=mst.cmds.info_command)
 
     args = parser.parse_args(raw_args)
     args.verbosity = args.verbose - args.quiet

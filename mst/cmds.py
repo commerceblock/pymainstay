@@ -669,4 +669,24 @@ def keygen_command(args):
         sig = key.sign_message(message, True)
         print("Signature: "+str(base64.b64encode(sig).decode('ascii')))
 
-    
+def info_command(args):
+
+    settings = get_settings(args)
+
+    if args.slot:
+        slot = args.slot
+    else:
+        try:
+            slot = settings["slot"]
+        except:
+            logging.error("Missing slot ID in config and argument")
+            sys.exit(1)
+
+    rstring = "/api/v1/commitment/latestproof?position="+str(slot)
+    sproof = get_mainstay_api(args.service_url,rstring)
+    if "error" in sproof.keys():
+        logging.error("Slot "+str(slot)+" not active")
+        sys.exit(1)
+
+    print("Slot "+str(slot)+" last commitment: "+sproof["response"]["commitment"])
+    print("ID: "+sproof["response"]["txid"]+":"+str(slot))
