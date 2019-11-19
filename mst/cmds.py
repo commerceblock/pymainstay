@@ -12,6 +12,7 @@ import threading
 import hashlib
 import math
 import base64
+import git
 from binascii import hexlify
 import mst
 import mst.rpchost as rpc
@@ -153,7 +154,7 @@ def update_proofseq(service_url,seq,slot,txid):
                 return False
         for sproof in pp["data"]:
             try:
-                if sproof["txid"] == txid:
+                if sproof["txid"] == txid and sproof["commitment"] != '0'*64:
                     return seq
                 if sproof["txid"] != top_txid:
                     addproof = {"txid":sproof["txid"],
@@ -170,6 +171,8 @@ def update_proofseq(service_url,seq,slot,txid):
             except:
                 logging.error("ERROR: get commit proof error")
                 return False
+            if sproof["txid"] == txid:
+                return seq
     return seq
 
 def attest_command(args):
@@ -224,6 +227,25 @@ def attest_command(args):
             sys.exit(1)
         print("SHA256("+args.filename+"): "+commitment)
 
+    if args.git:
+        if args.git == '0':
+            try:
+                git_path = str(settings["git_path"])
+            except:
+                logging.error("Missing Git repo path in config and argument")
+                sys.exit(1)
+        else:
+            git_path = args.git
+        try:
+            repo = git.Repo(git_path)
+            line = repo.git.log('--pretty=oneline','-1')
+        except:
+            logging.error("Invalid Git repository")
+            sys.exit(1)
+        padding = '0'*24
+        commitment = line[0:40] + padding
+        print('HEAD: '+line[0:40])
+
     headers = {'Content-Type': 'application/json'}
     payload = {"commitment":commitment,"position":slot,"token":token}
     payload_enc = str(base64.b64encode(json.dumps(payload).encode('utf-8')).decode('ascii'))
@@ -237,8 +259,13 @@ def attest_command(args):
         sig_string = ""
 
     data = {"X-MAINSTAY-PAYLOAD":payload_enc,"X-MAINSTAY-SIGNATURE":sig_string}
-    response = requests.post(args.service_url+'/api/v1/commitment/send', headers=headers, data=json.dumps(data))
-    rdata = response.json()
+    try:
+        response = requests.post(args.service_url+'/api/v1/commitment/send', headers=headers, data=json.dumps(data))
+        rdata = response.json()
+    except:
+        logging.error("ERROR: could not open specified file")
+        sys.exit(1)
+
     if 'error' in rdata:
         logging.error(rdata["error"])
     else:
@@ -307,6 +334,9 @@ def fetch_command(args):
             writetofile(seq,args.filename)
         if args.output and sproof:
             print(json.dumps(seq, indent=2, sort_keys=True))
+
+    if args.git_path:
+        
 
     if args.txid:
         if args.txid == '0':
@@ -439,6 +469,52 @@ def verify_command(args):
                 logging.error("Commitment list sequence missmatch at position "+str(itr))
                 sys.exit(1)
         print("Verified proof sequence against commitment list")
+        return True
+
+    if args.git:
+        if args.git == '0':
+            try:
+                git_path = str(settings["git_path"])
+            except:
+                logging.error("Missing Git repo path in config and argument")
+                sys.exit(1)
+        else:
+            git_path = args.git
+        try:
+            repo = git.Repo(git_path)
+            gitlog = repo.git.log('--pretty=oneline')
+        except:
+            logging.error("Invalid Git repository")
+            sys.exit(1)
+        padding = '0'*24
+        ptr = 0
+        clist = repo.splitlines()
+        #loop over all slot proofs in sequence
+        for sproof in seq:
+            # zero commits are null and skipped
+            if sproof["commitment"] == '0'*64: continue
+            #loop over all commits
+            found = False
+            for itr in range(ptr,len(clist)):
+                if clist[itr][0:40]+padding == sproof["commitment"]:
+                    ptr = itr
+                    found = True
+                    break
+            if not found:
+                logging.error("Verification failed. Commitment "+sproof["commitment"]+" not in repo.")
+                sys.exit(1)
+        print("Verified proof sequence against commit history")
+
+        try:
+            init_txid = clist[itr][41:105]
+            init_slot = clist[itr][106:]
+        except:
+            print("Initial Git commit not valid staychain ID")
+        if init_txid in seq[-1]["txid"] and int(slot) == int(init_slot):
+            print("Verified Git commit history unique")
+            print("Base txid: "+init_txid+" slot: "+str(init_slot))
+        else:
+            print("Staychain ID not committed to Git history")
         return True
 
     verout = []
@@ -597,29 +673,41 @@ def sync_command(args):
 def config_command(args):
 
     settings = get_settings(args)
-
+    flag = False
     if args.slot:
         settings["slot"] = args.slot
+        flag = True
 
     if args.txid:
         settings["txid"] = args.txid
+        flag = True
 
     if args.bitcoin_node:
         settings["bitcoin_node"] = args.bitcoin_node
+        flag = True
 
     if args.sidechain_node:
         settings["txid"] = args.sidechain_node
+        flag = True
 
     if args.api_token:
         settings["api_token"] = args.api_token
+        flag = True
 
     if args.privkey:
         settings["privkey"] = args.privkey
+        flag = True
 
-    if args.get:
+    if args.gitpath:
+        settings["git_path"] = args.gitpath
+        flag = True
+
+    if not flag:
        print(json.dumps(settings, indent=2, sort_keys=True))
        print("Data directory: "+APPDIRS.user_data_dir)
+       return True
 
+    print("Set new config")
     save_settings(settings)
 
 def keygen_command(args):

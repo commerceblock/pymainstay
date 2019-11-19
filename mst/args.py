@@ -34,6 +34,10 @@ def parse_msc_args(raw_args):
                               dest='commitment',
                               help="Hex string of the 32 bytes commitment.")
 
+    attest_group.add_argument("-g","--git", type=str,
+                              dest='git',
+                              help="Attest the HEAD of the specified Git repository. If 0 use stored path.")
+
     parser_attest.add_argument("-s", "--slot", type=int, default=0,
                               dest='slot',
                               help="Specify the slot position index")
@@ -185,9 +189,9 @@ def parse_msc_args(raw_args):
                               dest='privkey',
                               help="Private key for signing the commitment.")
 
-    parser_config.add_argument("-g","--get", action='store_true', default=False,
-                              dest='get',
-                              help="Print config settings.")
+    parser_config.add_argument("-g","--git", type=str,
+                              dest='gitpath',
+                              help="Path to linked Git repository.")
 
     # key generation
     parser_keygen = subparsers.add_parser('keygen', aliases=['k'],
