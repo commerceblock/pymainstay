@@ -275,7 +275,7 @@ def fetch_command(args):
 
     settings = get_settings(args)
 
-    if args.slot:
+    if args.slot and not args.gitpath:
         slot = args.slot
     else:
         try:
@@ -335,8 +335,45 @@ def fetch_command(args):
         if args.output and sproof:
             print(json.dumps(seq, indent=2, sort_keys=True))
 
-    if args.git_path:
-        
+    if args.gitpath:
+        if args.gitpath == '0':
+            try:
+                git_path = str(settings["git_path"])
+            except:
+                logging.error("Missing Git repo path in config and argument")
+                sys.exit(1)
+        else:
+            git_path = args.gitpath
+        try:
+            repo = git.Repo(git_path)
+            gitlog = repo.git.log('--pretty=oneline')
+        except:
+            logging.error("Invalid Git repository")
+            sys.exit(1)
+        clist = repo.splitlines()
+        try:
+            init_txid = clist[-1][41:105]
+            init_slot = clist[-1][106:]
+            slotint = int(init_slot)
+        except:
+            logging.error("Initial Git commit not valid staychain ID")
+            sys.exit(1)        
+        if not is_hex(init_txid):
+            logging.error("Invlaid Git commit staychain ID: not hex")
+
+        seq = load_proofseq(slot)
+        seq = update_proofseq(args.service_url,seq,init_slot,init_txid)
+
+        if args.filename and seq:
+            writetofile(seq,args.filename)
+        if args.output and seq:
+            print(json.dumps(seq, indent=2, sort_keys=True))
+        save_proofseq(slot,seq)
+        print("Git repo initial commit ID: "+init_txid+":"+init_slot)
+        print("Sequence length: "+str(len(seq)))
+        print("    Start: "+seq[-1]["date"])
+        print("    End: "+seq[0]["date"])
+        return True
 
     if args.txid:
         if args.txid == '0':
@@ -471,15 +508,15 @@ def verify_command(args):
         print("Verified proof sequence against commitment list")
         return True
 
-    if args.git:
-        if args.git == '0':
+    if args.gitpath:
+        if args.gitpath == '0':
             try:
                 git_path = str(settings["git_path"])
             except:
                 logging.error("Missing Git repo path in config and argument")
                 sys.exit(1)
         else:
-            git_path = args.git
+            git_path = args.gitpath
         try:
             repo = git.Repo(git_path)
             gitlog = repo.git.log('--pretty=oneline')
@@ -506,8 +543,8 @@ def verify_command(args):
         print("Verified proof sequence against commit history")
 
         try:
-            init_txid = clist[itr][41:105]
-            init_slot = clist[itr][106:]
+            init_txid = clist[-1][41:105]
+            init_slot = clist[-1][106:]
         except:
             print("Initial Git commit not valid staychain ID")
         if init_txid in seq[-1]["txid"] and int(slot) == int(init_slot):

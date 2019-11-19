@@ -94,7 +94,11 @@ def parse_msc_args(raw_args):
 
     type_group.add_argument("-u","--update", action='store_true', default=False,
                               dest='update',
-                              help="Update stored proof sequence to include latest slot proofs. ")    
+                              help="Update stored proof sequence to include latest slot proofs. ")
+
+    list_group.add_argument("-g","--git", type=str,
+                              dest='gitpath',
+                              help="Fetch proof sequence for specified Git repository.") 
 
     # Verify proofs
     parser_verify = subparsers.add_parser('verify', aliases=['v'],
@@ -131,9 +135,15 @@ def parse_msc_args(raw_args):
                               dest='txid',
                               help="Verify that the proof sequence is committed to the staychain containing TxID")
 
-    verify_group.add_argument("-l","--list", type=str,
+    list_group  = parser_verify.add_mutually_exclusive_group()
+
+    list_group.add_argument("-l","--list", type=str,
                               dest='list',
                               help="Verify the list of comma separated commitments against the sequence proof")
+
+    list_group.add_argument("-g","--git", type=str,
+                              dest='gitpath',
+                              help="Verify the sequence proof against the specified Git repository path. If 0, stored path used.")
 
     # Sync with sidechain
     parser_sync = subparsers.add_parser('sync', aliases=['s'],
