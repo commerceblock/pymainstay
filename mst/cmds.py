@@ -350,7 +350,7 @@ def fetch_command(args):
         except:
             logging.error("Invalid Git repository")
             sys.exit(1)
-        clist = repo.splitlines()
+        clist = gitlog.splitlines()
         try:
             init_txid = clist[-1][41:105]
             init_slot = clist[-1][106:]
@@ -525,7 +525,7 @@ def verify_command(args):
             sys.exit(1)
         padding = '0'*24
         ptr = 0
-        clist = repo.splitlines()
+        clist = gitlog.splitlines()
         #loop over all slot proofs in sequence
         for sproof in seq:
             # zero commits are null and skipped
@@ -538,7 +538,7 @@ def verify_command(args):
                     found = True
                     break
             if not found:
-                logging.error("Verification failed. Commitment "+sproof["commitment"]+" not in repo.")
+                logging.error("Verification failed. Commitment "+sproof["commitment"][0:40]+" not in repo.")
                 sys.exit(1)
         print("Verified proof sequence against commit history")
 

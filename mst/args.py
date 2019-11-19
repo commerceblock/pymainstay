@@ -96,7 +96,7 @@ def parse_msc_args(raw_args):
                               dest='update',
                               help="Update stored proof sequence to include latest slot proofs. ")
 
-    list_group.add_argument("-g","--git", type=str,
+    type_group.add_argument("-g","--git", type=str,
                               dest='gitpath',
                               help="Fetch proof sequence for specified Git repository.") 
 
