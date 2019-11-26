@@ -138,6 +138,7 @@ def update_proofseq(service_url,seq,slot,txid):
         top_txid = " "
     rstring = "/api/v1/position?position="+str(slot)
     pp = get_mainstay_api(service_url,rstring)
+    total = pp["total"]
     try:
         np = math.ceil(pp["pages"])
     except:
@@ -155,7 +156,7 @@ def update_proofseq(service_url,seq,slot,txid):
         for sproof in pp["data"]:
             try:
                 if sproof["txid"] == txid and sproof["commitment"] != '0'*64:
-                    return seq
+                    break
                 if sproof["txid"] != top_txid:
                     addproof = {"txid":sproof["txid"],
                                 "commitment":sproof["commitment"],
@@ -167,13 +168,21 @@ def update_proofseq(service_url,seq,slot,txid):
                         seq.insert(ip,addproof)
                         ip = ip + 1
                 else:
-                    return seq
+                    break
             except:
                 logging.error("ERROR: get commit proof error")
                 return False
             if sproof["txid"] == txid:
-                return seq
-    return seq
+                break
+
+    # check total
+    rstring = "/api/v1/position?position="+str(slot)
+    pp = get_mainstay_api(service_url,rstring)
+    if total == pp["total"]:
+        return seq
+    else:
+        logging.error("ERROR: pages updated during retrieval - please re-run fetch.")
+        return False        
 
 def attest_command(args):
 
@@ -378,6 +387,7 @@ def fetch_command(args):
             writetofile(seq,args.filename)
         if args.output and sproof:
             logging.info(json.dumps(seq, indent=2, sort_keys=True))
+        return True
 
     if args.gitpath:
         if args.gitpath == '0':
@@ -461,6 +471,9 @@ def fetch_command(args):
         logging.info("Sequence length: "+str(len(seq)))
         logging.info("    Start: "+seq[-1]["date"])
         logging.info("    End: "+seq[0]["date"])
+        return True
+
+    logging.info("Please specify a fetch option (fetch -h for details).")
 
 def verify_command(args):
 
@@ -837,7 +850,7 @@ def config_command(args):
         flag = True
 
     if args.sidechain_node:
-        settings["txid"] = args.sidechain_node
+        settings["sidechain_node"] = args.sidechain_node
         flag = True
 
     if args.api_token:
@@ -853,7 +866,7 @@ def config_command(args):
         flag = True
 
     if args.directory:
-        settings["directory"] = args.gitpath
+        settings["directory"] = args.directory
         flag = True
 
     if not flag:

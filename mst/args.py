@@ -103,11 +103,7 @@ def parse_msc_args(raw_args):
     type_group.add_argument("-g","--git", type=str,
                               dest='gitpath',
                               help="Fetch proof sequence for specified Git repository.")
-
-    type_group.add_argument("-d","--dir", type=str,
-                              dest='directory',
-                              help="Fetch proof sequence for specified directory path.")    
-
+   
     # Verify proofs
     parser_verify = subparsers.add_parser('verify', aliases=['v'],
                               help='Verify Mainstay proofs against the Bitcoin blockchain')
@@ -215,6 +211,10 @@ def parse_msc_args(raw_args):
                               dest='gitpath',
                               help="Path to linked Git repository.")
 
+    parser_config.add_argument("-d","--dir", type=str,
+                              dest='directory',
+                              help="Path to linked file history directory.")
+
     # key generation
     parser_keygen = subparsers.add_parser('keygen', aliases=['k'],
                               help='Generate signing keys for attestations')
@@ -231,7 +231,7 @@ def parse_msc_args(raw_args):
 
     keygen_group.add_argument("-s", "--sign", type=str,
                               dest='sign',
-                              help="Produce a DER encoded ECDSA signature for the supplied commitment.")
+                              help="Produce a DER encoded ECDSA signature for the supplied commitment.")    
 
     # status and info
     parser_info = subparsers.add_parser('info', aliases=['i'],
