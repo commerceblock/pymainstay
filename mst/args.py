@@ -38,9 +38,13 @@ def parse_msc_args(raw_args):
                               dest='git',
                               help="Attest the HEAD of the specified Git repository. If 0 use stored path.")
 
+    attest_group.add_argument("-d","--dir", type=str,
+                              dest='directory',
+                              help="Attest the state of the specified sequence directory.")
+
     parser_attest.add_argument("-s", "--slot", type=int, default=0,
                               dest='slot',
-                              help="Specify the slot position index")
+                              help="Specify the slot position index.")
 
     parser_attest.add_argument("--url", type=str,
                               dest='service_url',
@@ -98,7 +102,11 @@ def parse_msc_args(raw_args):
 
     type_group.add_argument("-g","--git", type=str,
                               dest='gitpath',
-                              help="Fetch proof sequence for specified Git repository.") 
+                              help="Fetch proof sequence for specified Git repository.")
+
+    type_group.add_argument("-d","--dir", type=str,
+                              dest='directory',
+                              help="Fetch proof sequence for specified directory path.")    
 
     # Verify proofs
     parser_verify = subparsers.add_parser('verify', aliases=['v'],
@@ -144,6 +152,10 @@ def parse_msc_args(raw_args):
     list_group.add_argument("-g","--git", type=str,
                               dest='gitpath',
                               help="Verify the sequence proof against the specified Git repository path. If 0, stored path used.")
+
+    list_group.add_argument("-d","--dir", type=str,
+                              dest='directory',
+                              help="Verify the sequence proof against the time ordered files in the specified directory (path).")
 
     # Sync with sidechain
     parser_sync = subparsers.add_parser('sync', aliases=['s'],

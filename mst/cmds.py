@@ -17,7 +17,7 @@ from binascii import hexlify
 import mst
 import mst.rpchost as rpc
 from mst.verify import verify_commitment
-from mst.ecc import key_gen, ECPrivkey
+from mst.ecc import key_gen, ECPrivkey, Hash
 
 
 APPDIRS = appdirs.AppDirs('msc','mainstay')
@@ -217,7 +217,7 @@ def attest_command(args):
 
     if args.filename:
         if args.filename[0] == '/':
-            filename = args.file
+            filename = args.filename
         else:
             filename = os.getcwd() + '/' + args.filename
         try:
@@ -225,7 +225,7 @@ def attest_command(args):
         except:
             logging.error("ERROR: could not open specified file")
             sys.exit(1)
-        print("SHA256("+args.filename+"): "+commitment)
+        logging.info("SHA256("+args.filename+"): "+commitment)
 
     if args.git:
         if args.git == '0':
@@ -244,7 +244,51 @@ def attest_command(args):
             sys.exit(1)
         padding = '0'*24
         commitment = line[0:40] + padding
-        print('HEAD: '+line[0:40])
+        logging.info('HEAD: '+line[0:40])
+
+    if args.directory:
+        if args.directory == '0':
+            try:
+                dir_path = str(settings["directory"])
+            except:
+                logging.error("Missing directory path in config and argument")
+                sys.exit(1)
+        else:
+            dir_path = args.directory
+        try:
+            filelist = os.listdir(dir_path)
+        except:
+            logging.error("ERROR: Invalid directory path.")
+            sys.exit(1)
+
+        filelist.sort()
+
+        if dir_path[-1] != '/':
+            dir_path += '/'
+        time = 0
+        cstream = ''
+        nfiles = 0
+        for file in filelist:
+            mtime = os.path.getmtime(dir_path+file)
+            if mtime <= time:
+                logging.warning("WARNING: modification times out of order with name sequence")
+            if os.path.isfile(dir_path+file):
+                try:
+                    filehash = sha256sum(dir_path+file)
+                    cstream += filehash
+                    time = mtime
+                    nfiles += 1
+                    logging.debug("File "+file)
+                    logging.debug("SHA256 "+filehash)
+                    logging.debug("Time "+str(time))
+                except:
+                    logging.error("ERROR: could not open file: "+file)
+                    sys.exit(1)
+        #create commitment from hash list
+        preimage = bytes.fromhex(cstream)
+        commitment = Hash(preimage).hex()
+        logging.info("Hash sequence: "+str(nfiles)+" files")
+        logging.info("Commitment: "+commitment)
 
     headers = {'Content-Type': 'application/json'}
     payload = {"commitment":commitment,"position":slot,"token":token}
@@ -263,11 +307,11 @@ def attest_command(args):
         response = requests.post(args.service_url+'/api/v1/commitment/send', headers=headers, data=json.dumps(data))
         rdata = response.json()
     except:
-        logging.error("ERROR: could not open specified file")
+        logging.error("ERROR: could not send request")
         sys.exit(1)
 
     if 'error' in rdata:
-        logging.error(rdata["error"])
+        logging.error("Mainstay service error: "+rdata["error"])
     else:
         logging.info("Attestation sent")
 
@@ -300,7 +344,7 @@ def fetch_command(args):
             if args.filename and sproof:
                 writetofile(sproof,args.filename)
             if args.output and sproof:
-                print(sproof)
+                logging.info(sproof)
             return True
         if len(args.commitment) != 64:
             logging.error("Invlaid commitment string: incorrect length")
@@ -313,7 +357,7 @@ def fetch_command(args):
         if args.filename and sproof:
             writetofile(sproof,args.filename)
         if args.output and sproof:
-            print(json.dumps(sproof, indent=2, sort_keys=True))
+            logging.info(json.dumps(sproof, indent=2, sort_keys=True))
         return True
 
     if args.list:
@@ -333,7 +377,7 @@ def fetch_command(args):
         if args.filename and sproof:
             writetofile(seq,args.filename)
         if args.output and sproof:
-            print(json.dumps(seq, indent=2, sort_keys=True))
+            logging.info(json.dumps(seq, indent=2, sort_keys=True))
 
     if args.gitpath:
         if args.gitpath == '0':
@@ -367,12 +411,12 @@ def fetch_command(args):
         if args.filename and seq:
             writetofile(seq,args.filename)
         if args.output and seq:
-            print(json.dumps(seq, indent=2, sort_keys=True))
+            logging.info(json.dumps(seq, indent=2, sort_keys=True))
         save_proofseq(slot,seq)
-        print("Git repo initial commit ID: "+init_txid+":"+init_slot)
-        print("Sequence length: "+str(len(seq)))
-        print("    Start: "+seq[-1]["date"])
-        print("    End: "+seq[0]["date"])
+        logging.info("Git repo initial commit ID: "+init_txid+":"+init_slot)
+        logging.info("Sequence length: "+str(len(seq)))
+        logging.info("    Start: "+seq[-1]["date"])
+        logging.info("    End: "+seq[0]["date"])
         return True
 
     if args.txid:
@@ -393,11 +437,11 @@ def fetch_command(args):
         if args.filename and seq:
             writetofile(seq,args.filename)
         if args.output and seq:
-            print(json.dumps(seq, indent=2, sort_keys=True))
+            logging.info(json.dumps(seq, indent=2, sort_keys=True))
         save_proofseq(slot,seq)
-        print("Sequence length: "+str(len(seq)))
-        print("    Start: "+seq[-1]["date"])
-        print("    End: "+seq[0]["date"])
+        logging.info("Sequence length: "+str(len(seq)))
+        logging.info("    Start: "+seq[-1]["date"])
+        logging.info("    End: "+seq[0]["date"])
         return True
 
     if args.update:
@@ -412,11 +456,11 @@ def fetch_command(args):
         if args.filename and seq:
             writetofile(seq[0:-olen],args.filename)
         if args.output and seq:
-            print(json.dumps(seq[0:-olen], indent=2, sort_keys=True))
-        print("Added "+str(len(seq)-olen)+" proofs")
-        print("Sequence length: "+str(len(seq)))
-        print("    Start: "+seq[-1]["date"])
-        print("    End: "+seq[0]["date"])
+            logging.info(json.dumps(seq[0:-olen], indent=2, sort_keys=True))
+        logging.info("Added "+str(len(seq)-olen)+" proofs")
+        logging.info("Sequence length: "+str(len(seq)))
+        logging.info("    Start: "+seq[-1]["date"])
+        logging.info("    End: "+seq[0]["date"])
 
 def verify_command(args):
 
@@ -468,7 +512,7 @@ def verify_command(args):
         ver,_ = verify_commitment(slot,addproof,bitcoin_node)
         ver_com = "Verified commitment "+ver[0]+" in slot "+str(slot)+" in TxID "+ver[1]
         ver_block = "In Bitcoin block "+ver[2]+" height "+ver[3]+" at "+ver[4]
-        print(ver_com+"\n"+ver_block)
+        logging.info(ver_com+"\n"+ver_block)
         return True
 
     if args.filename:
@@ -505,7 +549,7 @@ def verify_command(args):
             if commitment_list[itr] != nseq[itr]["commitment"]:
                 logging.error("Commitment list sequence missmatch at position "+str(itr))
                 sys.exit(1)
-        print("Verified proof sequence against commitment list")
+        logging.info("Verified proof sequence against commitment list")
         return True
 
     if args.gitpath:
@@ -526,6 +570,7 @@ def verify_command(args):
         padding = '0'*24
         ptr = 0
         clist = gitlog.splitlines()
+        matched = []
         #loop over all slot proofs in sequence
         for sproof in seq:
             # zero commits are null and skipped
@@ -536,23 +581,91 @@ def verify_command(args):
                 if clist[itr][0:40]+padding == sproof["commitment"]:
                     ptr = itr
                     found = True
+                    matched.append(sproof["commitment"])
+                    logging.debug("Matched commit "+sproof["commit"]+" txid "+sproof["txid"])
                     break
             if not found:
                 logging.error("Verification failed. Commitment "+sproof["commitment"][0:40]+" not in repo.")
                 sys.exit(1)
-        print("Verified proof sequence against commit history")
-
+        logging.info("Verified proof sequence against commit history to "+matched[0][0:40])
+        if seq[0]["commitment"] != matched[0]:
+            ncom = 0
+            for commit in clist:
+                if commit[0:40] == seq[0]["commitment"]: break
+                ncom += 1
+            logging.error("WARNING: last "+str(ncom)+" commits not attested.")
         try:
             init_txid = clist[-1][41:105]
             init_slot = clist[-1][106:]
         except:
-            print("Initial Git commit not valid staychain ID")
+            logging.info("Initial Git commit not valid staychain ID")
         if init_txid in seq[-1]["txid"] and int(slot) == int(init_slot):
-            print("Verified Git commit history unique")
-            print("Base txid: "+init_txid+" slot: "+str(init_slot))
+            logging.info("Verified Git commit history unique")
+            logging.info("Base txid: "+init_txid+" slot: "+str(init_slot))
         else:
-            print("Staychain ID not committed to Git history")
+            logging.info("Staychain ID not committed to Git history")
         return True
+
+    if args.directory:
+        if args.directory == '0':
+            try:
+                dir_path = str(settings["directory"])
+            except:
+                logging.error("Missing directory path in config and argument")
+                sys.exit(1)
+        else:
+            dir_path = args.directory
+        try:
+            filelist = os.listdir(dir_path)
+        except:
+            logging.error("ERROR: Invalid directory path.")
+            sys.exit(1)
+
+        filelist.sort()
+
+        if dir_path[-1] != '/':
+            dir_path += '/'
+        time = 0
+        cstream = ''
+        chash = []
+        flist = []
+        #create list of cumulative file hashes
+        for file in filelist:
+            mtime = os.path.getmtime(dir_path+file)
+            if mtime <= time:
+                logging.warning("WARNING: modification times out of order with name sequence")
+            if os.path.isfile(dir_path+file):
+                try:
+                    filehash = sha256sum(dir_path+file)
+                    flist.insert(0,file)
+                    cstream += filehash
+                    time = mtime
+                    preimage = bytes.fromhex(cstream)
+                    commitment = Hash(preimage).hex()
+                    chash.insert(0,commitment)
+                except:
+                    logging.error("ERROR: could not open file: "+file)
+                    sys.exit(1)
+        #loop over all slot proofs in sequence
+        ptr = 0
+        for sproof in seq:
+            # zero commits are null and skipped
+            if sproof["commitment"] == '0'*64: continue
+            #loop over all commits
+            found = False
+            for itr in range(ptr,len(chash),ptr):
+                if chash[itr] == sproof["commitment"]:
+                    ptr = itr
+                    found = True
+                    logging.debug("Commitment "+sproof["commitment"])
+                    logging.debug("Latest file "+flist[itr])
+                    logging.debug("In TxID "+sproof["txid"])
+                    logging.debug("Block height "+sproof["height"])
+                    break
+            if not found:
+                logging.error("Verification failed. Commitment "+sproof["commitment"][0:40]+" not in directory hash chain. ")
+                sys.exit(1)
+        logging.info("Verified proof sequence against directory hash chain")
 
     verout = []
     nseq = []
@@ -581,15 +694,15 @@ def verify_command(args):
     # verify staychain txid
     if txid_base:
         if txid_base in schain or txid_base in txin:
-            print("Verified proof sequence against staychain "+txid_base+" slot "+str(slot)+"\n")
+            logging.info("Verified proof sequence against staychain "+txid_base+" slot "+str(slot)+"\n")
         else:
             logging.error("Proof sequence not on specified staychain")
             sys.exit(1)
     else:
-        print("Verified proof sequence\n")
+        logging.info("Verified proof sequence\n")
 
-    print("Start commitment in block "+verout[-1][2]+" height "+verout[-1][3]+" at "+verout[-1][4])
-    print("End commitment in block "+verout[0][2]+" height "+verout[0][3]+" at "+verout[0][4])
+    logging.info("Start commitment in block "+verout[-1][2]+" height "+verout[-1][3]+" at "+verout[-1][4])
+    logging.info("End commitment in block "+verout[0][2]+" height "+verout[0][3]+" at "+verout[0][4])
 
 def sync_command(args):
 
@@ -675,13 +788,13 @@ def sync_command(args):
     # verify staychain txid
     if txid_base:
         if txid_base in schain:
-            print("Verified proof sequence against staychain "+txid_base+" slot "+str(slot))
-            print("Staychain base "+txid_base+" committed to sidechain genesis")
+            logging.info("Verified proof sequence against staychain "+txid_base+" slot "+str(slot))
+            logging.info("Staychain base "+txid_base+" committed to sidechain genesis")
         else:
             logging.error("Proof sequence not on committed staychain")
             sys.exit(1)
     else:
-        print("Verified proof sequence\n")
+        logging.info("Verified proof sequence\n")
 
     #verify commitment sequence against sidechain
     prevh = 0
@@ -700,8 +813,8 @@ def sync_command(args):
         prevh = block["height"]
         sblocks.append(prevh)
 
-    print("Verified sidechain attestation sequence")
-    print("Latest attestated sidechain block: "+nseq[0]["commitment"]+" height "+str(sblocks[0]))
+    logging.info("Verified sidechain attestation sequence")
+    logging.info("Latest attestated sidechain block: "+nseq[0]["commitment"]+" height "+str(sblocks[0]))
 
     if args.filename and nseq:
         writetofile(nseq,args.filename)
@@ -739,12 +852,16 @@ def config_command(args):
         settings["git_path"] = args.gitpath
         flag = True
 
+    if args.directory:
+        settings["directory"] = args.gitpath
+        flag = True
+
     if not flag:
-       print(json.dumps(settings, indent=2, sort_keys=True))
-       print("Data directory: "+APPDIRS.user_data_dir)
+       logging.info(json.dumps(settings, indent=2, sort_keys=True))
+       logging.info("Data directory: "+APPDIRS.user_data_dir)
        return True
 
-    print("Set new config")
+    logging.info("Set new config")
     save_settings(settings)
 
 def keygen_command(args):
@@ -755,7 +872,7 @@ def keygen_command(args):
         entropy = args.gen
         privkey = key_gen(entropy)
         settings["privkey"] = privkey
-        print("Generated key: "+str(privkey))
+        logging.info("Generated key: "+str(privkey))
         save_settings(settings)
         return True  
 
@@ -775,7 +892,7 @@ def keygen_command(args):
                 sys.exit(1)
             privkey = args.public   
         public_key = ECPrivkey(bytes.fromhex(privkey)).get_public_key_hex(compressed=True)
-        print("Public key: "+str(public_key))
+        logging.info("Public key: "+str(public_key))
 
     if args.sign:
         try:
@@ -792,7 +909,7 @@ def keygen_command(args):
             sys.exit(1)
         message = bytes.fromhex(args.sign)
         sig = key.sign_message(message, True)
-        print("Signature: "+str(base64.b64encode(sig).decode('ascii')))
+        logging.info("Signature: "+str(base64.b64encode(sig).decode('ascii')))
 
 def info_command(args):
 
@@ -813,5 +930,5 @@ def info_command(args):
         logging.error("Slot "+str(slot)+" not active")
         sys.exit(1)
 
-    print("Slot "+str(slot)+" last commitment: "+sproof["response"]["commitment"])
-    print("ID: "+sproof["response"]["txid"]+":"+str(slot))
+    logging.info("Slot "+str(slot)+" last commitment: "+sproof["response"]["commitment"])
+    logging.info("ID: "+sproof["response"]["txid"]+":"+str(slot))
