@@ -241,14 +241,14 @@ def parse_msc_args(raw_args):
                               dest='slot',
                               help="Specify the slot position index")
 
-    parser_info.add_argument("-f", "--file", type=str,
-                              dest='filename',
-                              help="Write the staychain base into a commit file for export")
-
     parser_info.add_argument("--url", type=str,
                               dest='service_url',
                               default="https://mainstay.xyz",
                               help="URL for the Mainstay connector service. Default: %(default)s")
+
+    parser_info.add_argument("-c", "--config",
+                              dest='config',
+                              help="Set the staychain base TxID in the config.")
 
     parser_attest.set_defaults(cmd_func=mst.cmds.attest_command)
     parser_fetch.set_defaults(cmd_func=mst.cmds.fetch_command)

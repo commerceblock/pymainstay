@@ -158,9 +158,6 @@ def update_proofseq(service_url,seq,slot,txid):
         for sproof in pp["data"]:
             try:
                 logging.debug("TxID: "+sproof["txid"])
-                if sproof["txid"] == txid and sproof["commitment"] != '0'*64:
-                    fbase = True
-                    break
                 if sproof["txid"] != top_txid:
                     addproof = {"txid":sproof["txid"],
                                 "commitment":sproof["commitment"],
@@ -189,7 +186,7 @@ def update_proofseq(service_url,seq,slot,txid):
         return seq
     else:
         logging.error("ERROR: pages updated during retrieval - please re-run fetch.")
-        return False        
+        sys.exit(1)     
 
 def attest_command(args):
 
@@ -955,12 +952,20 @@ def info_command(args):
         except:
             logging.error("Missing slot ID in config and argument")
             sys.exit(1)
-
-    rstring = "/api/v1/commitment/latestproof?position="+str(slot)
-    sproof = get_mainstay_api(args.service_url,rstring)
+    try:
+        rstring = "/api/v1/commitment/latestproof?position="+str(slot)
+        sproof = get_mainstay_api(args.service_url,rstring)
+    except:
+        logging.error("ERROR: Mainstay API request error.")
     if "error" in sproof.keys():
-        logging.error("Slot "+str(slot)+" not active")
+        logging.info("Slot "+str(slot)+" not active.")
         sys.exit(1)
 
     logging.info("Slot "+str(slot)+" last commitment: "+sproof["response"]["commitment"])
-    logging.info("ID: "+sproof["response"]["txid"]+":"+str(slot))
+    logging.info("Base ID: "+sproof["response"]["txid"]+":"+str(slot))
+
+    if args.config:
+        settings["txid"] = sproof["response"]["txid"]
+
+    logging.info("Set new config for base TxID")
+    save_settings(settings)
