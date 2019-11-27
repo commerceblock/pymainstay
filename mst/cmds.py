@@ -145,7 +145,9 @@ def update_proofseq(service_url,seq,slot,txid):
         logging.error("ERROR: get position proofs http error")
         return False        
     ip = 0
+    fbase = False
     for page in range(np):
+        logging.debug("Reading page "+str(page+1)+" of "+str(np))
         if page > 0:
             try:
                 rstring = "/api/v1/position?position="+str(slot)+"&page="+str(page+1)
@@ -155,7 +157,9 @@ def update_proofseq(service_url,seq,slot,txid):
                 return False
         for sproof in pp["data"]:
             try:
+                logging.debug("TxID: "+sproof["txid"])
                 if sproof["txid"] == txid and sproof["commitment"] != '0'*64:
+                    fbase = True
                     break
                 if sproof["txid"] != top_txid:
                     addproof = {"txid":sproof["txid"],
@@ -168,12 +172,15 @@ def update_proofseq(service_url,seq,slot,txid):
                         seq.insert(ip,addproof)
                         ip = ip + 1
                 else:
+                    fbase = True
                     break
             except:
                 logging.error("ERROR: get commit proof error")
                 return False
             if sproof["txid"] == txid:
+                fbase = True
                 break
+        if fbase: break
 
     # check total
     rstring = "/api/v1/position?position="+str(slot)
@@ -595,18 +602,20 @@ def verify_command(args):
                     ptr = itr
                     found = True
                     matched.append(sproof["commitment"])
-                    logging.debug("Matched commit "+sproof["commit"]+" txid "+sproof["txid"])
+                    logging.debug("Commitment "+sproof["commitment"])
+                    logging.debug("In TxID "+sproof["txid"])
+                    logging.debug("Block height "+sproof["height"])
                     break
             if not found:
                 logging.error("Verification failed. Commitment "+sproof["commitment"][0:40]+" not in repo.")
                 sys.exit(1)
         logging.info("Verified proof sequence against commit history to "+matched[0][0:40])
-        if seq[0]["commitment"] != matched[0]:
+        if seq[0]["commitment"] != clist[0]:
             ncom = 0
             for commit in clist:
                 if commit[0:40] == seq[0]["commitment"]: break
                 ncom += 1
-            logging.error("WARNING: last "+str(ncom)+" commits not attested.")
+            logging.warning("WARNING: last "+str(ncom)+" commits not attested.")
         try:
             init_txid = clist[-1][41:105]
             init_slot = clist[-1][106:]
@@ -661,12 +670,13 @@ def verify_command(args):
                     sys.exit(1)
         #loop over all slot proofs in sequence
         ptr = 0
+        fmatch = []
         for sproof in seq:
             # zero commits are null and skipped
             if sproof["commitment"] == '0'*64: continue
             #loop over all commits
             found = False
-            for itr in range(ptr,len(chash),ptr):
+            for itr in range(ptr,len(chash)):
                 if chash[itr] == sproof["commitment"]:
                     ptr = itr
                     found = True
@@ -674,11 +684,20 @@ def verify_command(args):
                     logging.debug("Latest file "+flist[itr])
                     logging.debug("In TxID "+sproof["txid"])
                     logging.debug("Block height "+sproof["height"])
+                    fmatch.append(flist[itr])
                     break
             if not found:
                 logging.error("Verification failed. Commitment "+sproof["commitment"][0:40]+" not in directory hash chain. ")
                 sys.exit(1)
-        logging.info("Verified proof sequence against directory hash chain")
+        logging.info("Verified proof sequence against directory hash chain.")
+        if seq[0]["commitment"] != chash[0]:
+            ncom = 0
+            for commit in chash:
+                if commit == seq[0]["commitment"]: break
+                ncom += 1
+            logging.warning("WARNING: last "+str(ncom)+" files not attested.")
+            logging.warning("Last file attested: "+fmatch[0])
+        return True
 
     verout = []
     nseq = []
@@ -709,7 +728,7 @@ def verify_command(args):
         if txid_base in schain or txid_base in txin:
             logging.info("Verified proof sequence against staychain "+txid_base+" slot "+str(slot)+"\n")
         else:
-            logging.error("Proof sequence not on specified staychain")
+            logging.error("Proof sequence verified but not on specified staychain base")
             sys.exit(1)
     else:
         logging.info("Verified proof sequence\n")
