@@ -342,12 +342,13 @@ def fetch_command(args):
             sys.exit(1)
 
     if args.txid:
-        txid = args.txid
-    else:
-        try:
-            slot = settings["txid"]
-        except:
-            txid = None
+        if args.txid == '0':
+            try:
+                txid = settings["txid"]
+            except:
+                txid = None
+        else:
+            txid = args.txid
 
     # proof type
     if args.commitment:
@@ -434,16 +435,12 @@ def fetch_command(args):
         return True
 
     if args.txid:
-        if args.txid == '0':
-            txid = None
-        elif len(args.txid) != 64:
+        if len(txid) != 64:
             logging.error("Invlaid TxID string: incorrect length")
             sys.exit(1)
-        elif not is_hex(args.txid):
+        elif not is_hex(txid):
             logging.error("Invlaid TxID string: not hex")
             sys.exit(1)
-        else:
-            txid = args.txid
 
         seq = load_proofseq(slot)
         seq = update_proofseq(args.service_url,seq,slot,txid)
@@ -966,6 +963,5 @@ def info_command(args):
 
     if args.config:
         settings["txid"] = sproof["response"]["txid"]
-
-    logging.info("Set new config for base TxID")
-    save_settings(settings)
+        logging.info("Set new config for base TxID")
+        save_settings(settings)
