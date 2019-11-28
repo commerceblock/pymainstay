@@ -103,7 +103,6 @@ The client can retrive, store and update sequence proofs for a specified or conf
 
 ### Verification
 
-
 ### Sidechain syncronisation
 
 ### Key generation and authentication

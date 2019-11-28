@@ -1,9 +1,7 @@
 import sys
 import os
 import argparse
-import socket
 import logging
-import socket
 
 import mst
 import mst.cmds
