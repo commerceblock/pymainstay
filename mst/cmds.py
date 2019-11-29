@@ -919,6 +919,7 @@ def keygen_command(args):
             privkey = args.public   
         public_key = ECPrivkey(bytes.fromhex(privkey)).get_public_key_hex(compressed=True)
         logging.info("Public key: "+str(public_key))
+        return public_key
 
     if args.sign:
         try:
@@ -936,6 +937,9 @@ def keygen_command(args):
         message = bytes.fromhex(args.sign)
         sig = key.sign_message(message, True)
         logging.info("Signature: "+str(base64.b64encode(sig).decode('ascii')))
+        return str(base64.b64encode(sig).decode('ascii'))
+
+    logging.info("Please specify a keygen option (keygen -h for details).")
 
 def info_command(args):
 

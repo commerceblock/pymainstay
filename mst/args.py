@@ -217,6 +217,8 @@ def parse_msc_args(raw_args):
     parser_keygen = subparsers.add_parser('keygen', aliases=['k'],
                               help='Generate signing keys for attestations')
 
+    
+
     keygen_group  = parser_keygen.add_mutually_exclusive_group()
 
     keygen_group.add_argument("-g", "--generate", type=str,
