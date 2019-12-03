@@ -719,6 +719,7 @@ def verify_command(args):
     for sproof in seq:
         if txin:
             if sproof["txid"] not in txin:
+                logging.error("Verification failed")
                 logging.error("TxID "+sproof["txid"]+" not input to "+stxid)
                 return False
         ver,txin = verify_commitment(slot,sproof,bitcoin_node)

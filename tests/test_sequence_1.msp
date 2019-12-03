@@ -1,0 +1,104 @@
+[
+  {
+    "commitment": "2ec91e4da17e991b2b11d4de76b43fe9a550ce2a59d8b2e0c9dbebc8f5aead5a",
+    "date": "00:39:09 11/27/2019 UTC",
+    "height": "605527",
+    "merkle_root": "a43a0fdf839705254ea230e4ae0b2076685b37e00ed73bb0f4c35c687bb0f608",
+    "ops": [
+      {
+        "append": true,
+        "commitment": "2ec91e4da17e991b2b11d4de76b43fe9a550ce2a59d8b2e0c9dbebc8f5aead5a"
+      },
+      {
+        "append": false,
+        "commitment": "228c5b179ff60dd63cba91578496cc41c0c8a0b20d53ce8959f8f0e5fd94d4b2"
+      }
+    ],
+    "txid": "3a9a252265fd2d6ff855141e7b2fc703907d12e74730419ed44b61c91d367c38"
+  },
+  {
+    "commitment": "2ec91e4da17e991b2b11d4de76b43fe9a550ce2a59d8b2e0c9dbebc8f5aead5a",
+    "date": "23:37:58 11/26/2019 UTC",
+    "height": "605524",
+    "merkle_root": "4f8413d4ccfc077b45f03a5699d21b30155cf8205e7d1f62adaaf084e15444b3",
+    "ops": [
+      {
+        "append": true,
+        "commitment": "2ec91e4da17e991b2b11d4de76b43fe9a550ce2a59d8b2e0c9dbebc8f5aead5a"
+      },
+      {
+        "append": false,
+        "commitment": "0574fc6235dcc4498de178a61ac23d09e79955dd6ce8b74e7583a06ecccb285e"
+      }
+    ],
+    "txid": "1aa15c8ff5e1fdb6a6a86dde82c68f4980ae153d1591316992194fb158fabcf2"
+  },
+  {
+    "commitment": "2ec91e4da17e991b2b11d4de76b43fe9a550ce2a59d8b2e0c9dbebc8f5aead5a",
+    "date": "22:36:45 11/26/2019 UTC",
+    "height": "605517",
+    "merkle_root": "c33e204fb9debbf401cfb66601ee7909e0d5947619aa28356bc79e391140b4a0",
+    "ops": [
+      {
+        "append": true,
+        "commitment": "2ec91e4da17e991b2b11d4de76b43fe9a550ce2a59d8b2e0c9dbebc8f5aead5a"
+      },
+      {
+        "append": false,
+        "commitment": "800f715c14f718cd340efe8657ea1769a23b25e8ce6be5d8b3493ff8bf30bc0a"
+      }
+    ],
+    "txid": "bdb32fc02081556e4f4c6f903ed1f908e6f0e7bf9501184d911802f3fc7ad977"
+  },
+  {
+    "commitment": "2e93d25081d0c14cfe0d556e0c5c0e4b6b109d50e61f0caa16da33b064c3ac87",
+    "date": "21:35:33 11/26/2019 UTC",
+    "height": "605512",
+    "merkle_root": "b96108904368f04a814f910d25786451da54bf7137f13f2a4a723abef3a48299",
+    "ops": [
+      {
+        "append": true,
+        "commitment": "2e93d25081d0c14cfe0d556e0c5c0e4b6b109d50e61f0caa16da33b064c3ac87"
+      },
+      {
+        "append": false,
+        "commitment": "e125100f6191a92ef8853248e6c57b470e1fec06134c21284a847894c311ad2e"
+      }
+    ],
+    "txid": "ff34975d5a555ad2273ac39e0839c84b547656a3ac722d52b91867a5e7ee569c"
+  },
+  {
+    "commitment": "50270593506e065e127e8abfa05205337163ebdeeb1ae45428af8b02cda761c9",
+    "date": "20:34:21 11/26/2019 UTC",
+    "height": "605505",
+    "merkle_root": "4dc4ab2e9bc3a14d17ba7419aab597f971c8e55347aa4a715e26ce2119b7eaeb",
+    "ops": [
+      {
+        "append": true,
+        "commitment": "50270593506e065e127e8abfa05205337163ebdeeb1ae45428af8b02cda761c9"
+      },
+      {
+        "append": false,
+        "commitment": "b7d413e551bc645a31ff67e680a756840f480a217b354a17795c3490ba63de5a"
+      }
+    ],
+    "txid": "231a22c8ef8a0a8026e83f4fa48006bf58a9028f6221bb638c7ad569ddcb3cdb"
+  },
+  {
+    "commitment": "0000000000000000000000000000000000000000000000000000000000000000",
+    "date": "19:33:10 11/26/2019 UTC",
+    "height": "605497",
+    "merkle_root": "3ea94460d201b9438f7211ea443fe097d993e91f7db605f3f8c4d8b8c03e69f1",
+    "ops": [
+      {
+        "append": true,
+        "commitment": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      {
+        "append": false,
+        "commitment": "4def3152c13f67250895b8cf842b5505f4f3b3e92800da4a5520562438030595"
+      }
+    ],
+    "txid": "5222ffe08bfd4ca0db30d261b2d54d0b6e3faed5276be422e5e6ac32c450ccd7"
+  }
+]
