@@ -79,5 +79,41 @@ class TestVerify(unittest.TestCase):
             out = False
         self.assertFalse(out)
 
+    def test_docsequence(self):
+
+        cwd = os.getcwd()
+
+        raw_args = []
+        raw_args.append('verify')
+        raw_args.append('-f')
+        raw_args.append('test_sequence_1.msp')
+        raw_args.append('-d')
+        raw_args.append(cwd+'/files/')
+
+        args = mst.args.parse_msc_args(raw_args)
+        try:
+            out = cm.verify_command(args)
+        except:
+            out = False
+        self.assertTrue(out)
+
+    def test_docsequenceinvalid(self):
+
+        cwd = os.getcwd()
+
+        raw_args = []
+        raw_args.append('verify')
+        raw_args.append('-f')
+        raw_args.append('test_sequence_1.msp')
+        raw_args.append('-d')
+        raw_args.append(cwd+'/files2/')
+
+        args = mst.args.parse_msc_args(raw_args)
+        try:
+            out = cm.verify_command(args)
+        except:
+            out = False
+        self.assertFalse(out)
+
 if __name__ == '__main__': 
     unittest.main()
