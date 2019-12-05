@@ -130,7 +130,9 @@ def verify_p2c_commitment(proof, tx):
     except:
         nout = len(tx["outputs"])
     if nout != 1:
-        logging.warning('WARNING: staychain TxID '+sproof["txid"]+' has more than one output')
+        logging.error('ERROR: staychain TxID '+sproof["txid"]+' has more than one output')
+        logging.error('Staychain verification failed.')
+        sys.exit(1)
     try:
         commitment = proof['merkle_root']
     except:
@@ -169,21 +171,26 @@ def verify_commitment(slot,sproof,bitcoin_node):
         sys.exit(1)
     if '@' in bitcoin_node:
         #connect via RPC
-        if bitcoin_node[0:6] != 'http://':
-            bitcoin_node = 'http://' + bitcoin_node
         connection = rpc.RPCHost(bitcoin_node)
         try:
             tx = connection.call('getrawtransaction',sproof["txid"],True)
-        except:
-            logging.error('ERROR: getrawtransaction RPC failure')
+        except Exception as e:
+            logging.error('ERROR: getrawtransaction RPC error')
+            logging.error(str(e))
             sys.exit(1)
         tv = verify_p2c_commitment(sproof,tx)
         for txin in tx["vin"]:
             vins.append(txin["txid"])
         if not tv:
             logging.error('ERROR: P2C verification failed. Merkle root: '+sproof["merkle_root"])
+            logging.error('TxID: '+sproof['txid'])
             sys.exit(1)
-        block = connection.call('getblock',tx["blockhash"])
+        try:
+            block = connection.call('getblock',tx["blockhash"])
+        except Exception as e:
+            logging.error('ERROR: getblock RPC error')
+            logging.error(str(e))
+            sys.exit(1)
         try:
             ver = (sproof["commitment"],sproof["txid"],tx["blockhash"],str(block["height"]),datetime.fromtimestamp(block["time"].strftime('%c')))
         except:
