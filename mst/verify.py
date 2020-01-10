@@ -1,3 +1,7 @@
+# Copyright (c) 2019 CommerceBlock Team
+# Use of this source code is governed by an MIT
+# license that can be found in the LICENSE file.
+
 import sys
 import json
 import argparse
@@ -124,7 +128,12 @@ def verify_p2c_commitment(proof, tx):
     try:
         script_addr = tx["vout"][0]["scriptPubKey"]["hex"]
     except:
-        script_addr = tx["outputs"][0]["script"]
+        try:
+            script_addr = tx["outputs"][0]["script"]
+        except:
+            logging.error("Bitcoin API error")
+            logging.error(str(tx))
+            sys.exit(1)            
     try:
         nout = len(tx["vout"])
     except:

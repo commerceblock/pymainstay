@@ -1,3 +1,7 @@
+# Copyright (c) 2019 CommerceBlock Team
+# Use of this source code is governed by an MIT
+# license that can be found in the LICENSE file.
+
 import sys
 import json
 import argparse
@@ -423,16 +427,20 @@ def fetch_command(args):
         seq = load_proofseq(slot)
         seq = update_proofseq(args.service_url,seq,init_slot,init_txid)
 
-        if args.filename and seq:
-            writetofile(seq,args.filename)
-        if args.output and seq:
-            logging.info(json.dumps(seq, indent=2, sort_keys=True))
-        save_proofseq(slot,seq)
-        logging.info("Git repo initial commit ID: "+init_txid+":"+init_slot)
-        logging.info("Sequence length: "+str(len(seq)))
-        logging.info("    Start: "+seq[-1]["date"])
-        logging.info("    End: "+seq[0]["date"])
-        return True
+        if seq:
+            if args.filename and seq:
+                writetofile(seq,args.filename)
+            if args.output and seq:
+                logging.info(json.dumps(seq, indent=2, sort_keys=True))
+            save_proofseq(slot,seq)
+            logging.info("Git repo initial commit ID: "+init_txid+":"+init_slot)
+            logging.info("Sequence length: "+str(len(seq)))
+            logging.info("    Start: "+seq[-1]["date"])
+            logging.info("    End: "+seq[0]["date"])
+            return True
+        else:
+            logging.info("Empty sequence")
+            return False
 
     if args.txid:
         if len(txid) != 64:
@@ -445,24 +453,32 @@ def fetch_command(args):
         seq = load_proofseq(slot)
         seq = update_proofseq(args.service_url,seq,slot,txid)
 
-        if args.filename and seq:
-            writetofile(seq,args.filename)
-        if args.output and seq:
-            logging.info(json.dumps(seq, indent=2, sort_keys=True))
-        save_proofseq(slot,seq)
-        logging.info("Sequence length: "+str(len(seq)))
-        logging.info("    Start: "+seq[-1]["date"])
-        logging.info("    End: "+seq[0]["date"])
-        return True
+        if seq:
+            if args.filename and seq:
+                writetofile(seq,args.filename)
+            if args.output and seq:
+                logging.info(json.dumps(seq, indent=2, sort_keys=True))
+            save_proofseq(slot,seq)
+            logging.info("Sequence length: "+str(len(seq)))
+            logging.info("    Start: "+seq[-1]["date"])
+            logging.info("    End: "+seq[0]["date"])
+            return True
+        else:
+            logging.info("Empty sequence")
+            return False
 
     if args.update:
         txid = None
         seq = load_proofseq(slot)
-        olen = len(seq)
+        if seq:
+            olen = len(seq)
+        else:
+            olen = 0
         if olen < 1:
             logging.error("No proof sequence to update. Run -i first.")
             return False
         seq = update_proofseq(args.service_url,seq,slot,txid)
+
         save_proofseq(slot,seq)
         if args.filename and seq:
             writetofile(seq[0:-olen],args.filename)
@@ -698,7 +714,7 @@ def verify_command(args):
                     fmatch.append(flist[itr])
                     break
             if not found:
-                logging.error("Verification failed. Commitment "+sproof["commitment"][0:40]+" not in directory hash chain. ")
+                logging.error("Verification failed. Commitment "+sproof["commitment"]+" not in directory hash chain. ")
                 return False
         logging.info("Verified proof sequence against directory hash chain.")
         if seq[0]["commitment"] != chash[0]:
