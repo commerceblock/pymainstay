@@ -19,6 +19,7 @@ setup(
 
     # The project's main homepage.
     url='https://github.com/commerceblock/pymainstay',
+    download_url='https://github.com/commerceblock/pymainstay/archive/0.1.1.tar.gz',
 
     # Author details
     author='CommerceBlock',
@@ -26,6 +27,17 @@ setup(
 
     # Choose your license
     license='MIT',
+
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+
+        'Intended Audience :: Developers',
+        'Topic :: Security :: Cryptography',
+
+        'License :: OSI Approved :: MIT License',
+
+        'Programming Language :: Python :: 3 :: Only',
+    ],
 
     packages=find_packages(exclude=['docs', 'tests']),
 

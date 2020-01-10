@@ -23,7 +23,7 @@ or directly from source:
 
 ## Usage
 
-The Mainstay client interface (`msc`) can be used to fetch and verify proof sequences, syncronize and verify the immutability of Mainstay sidechains, perform authenticated data commitments and attestations, and generate and manage *mainstay.xyz* authentication keys. The interface is used via commands to perform different operations with specified arguments. The commands available can be listed with the `--help` argument:
+The Mainstay client interface (`msc`) can be used to fetch and verify proof sequences, synchronize and verify the immutability of Mainstay sidechains, perform authenticated data commitments and attestations, and generate and manage *mainstay.xyz* authentication keys. The interface is used via commands to perform different operations with specified arguments. The commands available can be listed with the `--help` argument:
 
 	$ msc -h
 
@@ -81,7 +81,7 @@ optional arguments:
 
 ### Configuration
 
-The client can be used in a stateless fashon, with all configuration supplied via the command-line options, however a configutation file (`config.json`) can be used, which is located in the application data directory. The current configuration, and the location of the application data directory on a particular system, can be retrieved as follows:
+The client can be used in a stateless fashion, with all configuration supplied via the command-line options, however a configuration file (`config.json`) can be used, which is located in the application data directory. The current configuration, and the location of the application data directory on a particular system, can be retrieved as follows:
 
 	$ msc config
 
@@ -89,7 +89,7 @@ All configuration is set via the same command. For connection to a particular sl
 
 ### Attestation
 
-To perform commitments to a specified *mainstay.xyz* slot requires an API token that will have been provided on initialisation of the slot. In addition, if a public key was specified on initialisation, the commitment must be signed by the corresponding private key. The signature is computed by the client if the private key is provided (or is set in the config). 
+To perform commitments to a specified *mainstay.xyz* slot requires an API token that will have been provided on initialization of the slot. In addition, if a public key was specified on initialization, the commitment must be signed by the corresponding private key. The signature is computed by the client if the private key is provided (or is set in the config). 
 
 The client will send 32 byte commitment supplied as an argument (`-c`) to the specified slot, or the SHA256 hash of a specified file path (`-f`). For example:
 
@@ -127,7 +127,7 @@ Once a sequence proof for a specified slot has been fetched, it can be updated t
 
 The client can perform various independent and trustless verification operations on sequence proofs to confirm the immutability of specified sequences. 
 
-Full verification of a specified sequence proof is performed in two stages, as a sequence proof bridges an secondary system to the Bitcoin blockchain. So typically a user will want to independently verify two properties of a specific sequence proof:
+Full verification of a specified sequence proof is performed in two stages, as a sequence proof bridges a secondary system to the Bitcoin blockchain. So typically a user will want to independently verify two properties of a specific sequence proof:
 
 1. That the sequence proof is attested to the unbroken sequence of *staychain* transactions confirmed in the Bitcoin blockchain at the specified slot position. 
 2. That the sequence proof corresponds to the sequence of state changes in the external system. 
@@ -136,7 +136,7 @@ The client enables users to perform each verification separately according to th
 
 #### Bitcoin blockchain verification
 
-To verify a specified sequence proof against the Bitcoin blockchain, a connection to a full Bitcoin node must be provided. This is set using the `-b` argument, and can be either an RPC URL with autentication details or a public HTTP address (for a remote block explorer). The Bitcoin node can also be set in the client config. For example:
+To verify a specified sequence proof against the Bitcoin blockchain, a connection to a full Bitcoin node must be provided. This is set using the `-b` argument, and can be either an RPC URL with authentication details or a public HTTP address (for a remote block explorer). The Bitcoin node can also be set in the client config. For example:
 
 	$ msc config -b username:password@localhost:8332
 
@@ -205,9 +205,9 @@ The `verify -g` operation also verifies that the staychain base TxID in the sequ
 
 	Staychain ID not committed to Git history
 
-### Sidechain syncronisation
+### Sidechain synchronization
 
-The client can be used to syncronise a sidechain state against a Bitcoin staychain. This is performed using the `sync` command, and requires an RPC connection to both a full Bitcoin node (or trusted block explorer) and the sidechain node. As with the Bitcoin node connection, the sidechain node connection can also be set in the client config:
+The client can be used to synchronize a sidechain state against a Bitcoin staychain. This is performed using the `sync` command, and requires an RPC connection to both a full Bitcoin node (or trusted block explorer) and the sidechain node. As with the Bitcoin node connection, the sidechain node connection can also be set in the client config:
 
 	$ msc config -b username:password@localhost:8332  # Bitcoin node
 	$ msc config -n username:password@localhost:8336  # Sidechain node
@@ -235,7 +235,7 @@ The returned hex-encoded public key is supplied in the web form used to sign-up 
 
 ### Staychain status and information
 
-When initialising a sidechain, Git repository or file repository, the staychain base TxID and slot position must be committed to the initial state in order to prove uniqueness. In a sidechain, this information is committed to the genesis block, and in the case of a Git repository, this information is added as the message of the initial commit. To retrieve the latest staychain TxID to perform this initialisation, the `info` command can be used. 
+When initializing a sidechain, Git repository or file repository, the staychain base TxID and slot position must be committed to the initial state in order to prove uniqueness. In a sidechain, this information is committed to the genesis block, and in the case of a Git repository, this information is added as the message of the initial commit. To retrieve the latest staychain TxID to perform this initialisation, the `info` command can be used. 
 
 	$ msc info
 
