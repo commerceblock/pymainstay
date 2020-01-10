@@ -25,11 +25,12 @@ setup(
     author_email='tom@commerceblock.com',
 
     # Choose your license
-    license='LGPL3',
+    license='MIT',
 
     packages=find_packages(exclude=['docs', 'tests']),
 
-    install_requires=[],
+    install_requires=['appdirs>=1.3.0',
+                      'GitPython>=2.0.8'],
     extras_require={},
     package_data={},
     data_files=[],
