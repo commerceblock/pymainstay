@@ -15,7 +15,7 @@ To trustlessly verify proofs, RPC connection details to a `bitcoind` node must b
 
 Via PyPi:
 
-    $ pip3 install mainstay
+    $ pip3 install pymainstay
 
 or directly from source:
 
