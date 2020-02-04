@@ -180,7 +180,7 @@ def verify_commitment(slot,sproof,bitcoin_node):
         sys.exit(1)
     if '@' in bitcoin_node:
         #connect via RPC
-        connection = rpc.RPCHost(bitcoin_node)
+        connection = rpc.RPCHost('http://' + bitcoin_node)
         try:
             tx = connection.call('getrawtransaction',sproof["txid"],True)
         except Exception as e:
@@ -226,3 +226,31 @@ def verify_commitment(slot,sproof,bitcoin_node):
             logging.error('TxID '+sproof["txid"]+' unconfirmed')
             sys.exit(1)
         return ver, vins
+
+def verify_unspent(txid,bitcoin_node):
+    #verify that a bitcoin transaction is unspent
+    if '@' in bitcoin_node:
+        #connect via RPC
+        connection = rpc.RPCHost('http://' + bitcoin_node)
+        try:
+            tx = connection.call('gettxout',txid,0,False)
+        except Exception as e:
+            logging.error('ERROR: gettxout RPC error')
+            logging.error(str(e))
+            sys.exit(1)
+        if tx:
+            return True
+        else:
+            return False
+    else:
+        #attempt to use http API
+        try:
+            req = requests.get(bitcoin_node+txid)
+            tx = req.json()
+        except:
+            logging.error('ERROR: get Bitcoin transaction via HTTP API failure')
+            sys.exit(1)
+        if "spent_by" in tx["outputs"][0]:
+            return False
+        else:
+            return True

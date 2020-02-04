@@ -124,6 +124,10 @@ def parse_msc_args(raw_args):
                               dest='proof',
                               help="Verify the given sequence proof (as a JSON object). If 0, a stored proof is verified.")
 
+    verify_group.add_argument("-u","--unspent", type=str,
+                              dest='unspent',
+                              help="Verify the given file or commitment is attested to the unspent staychain tip.")
+
     parser_verify.add_argument("-b","--bitcoin-node", dest="bitcoin_node", type=str,
                               default="https://api.blockcypher.com/v1/btc/main/txs/",
                               help="Bitcoin node URL to connect to to retrieve transaction data. RPC Format: RPC_USER:RPC_PASS@RPC_HOST:RPC_PORT")

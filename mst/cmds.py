@@ -20,7 +20,7 @@ import git
 from binascii import hexlify
 import mst
 import mst.rpchost as rpc
-from mst.verify import verify_commitment
+from mst.verify import verify_commitment, verify_unspent
 from mst.ecc import key_gen, ECPrivkey, Hash
 
 
@@ -545,6 +545,39 @@ def verify_command(args):
         logging.info(ver_com+"\n"+ver_block)
         return True
 
+    if args.unspent:
+        if len(args.unspent) != 64:
+            logging.error("Invlaid commitment string: incorrect length")
+            return False
+        if not is_hex(args.unspent):
+            logging.error("Invlaid commitment string: not hex")
+            return False
+        try:
+            rstring = "/api/v1/commitment/latestproof?position="+str(slot)
+            sproof = get_mainstay_api(args.service_url,rstring)
+        except:
+            logging.error("ERROR: Mainstay API request error.")
+            return False
+        addproof = {"txid":sproof["response"]["txid"],
+                    "commitment":sproof["response"]["commitment"],
+                    "merkle_root":sproof["response"]["merkle_root"],
+                    "ops":sproof["response"]["ops"]}
+        ver,_ = verify_commitment(slot,addproof,bitcoin_node)
+        usp = verify_unspent(addproof["txid"],bitcoin_node)
+        if ver[0] != args.unspent:
+            logging.info(args.unspent+" not latest commitment")
+            return False
+        if usp:
+            ver_com = "Latest commitment "+ver[0]+" in slot "+str(slot)+"\nUnspent TxID "+ver[1]
+            ver_block = "In Bitcoin block "+ver[2]+" height "+ver[3]+" at "+ver[4]
+            logging.info(ver_com+"\n"+ver_block)
+            return True
+        else:
+            ver_com = "Commitment "+ver[0]+" in slot "+str(slot)+"\nSpent TxID "+ver[1]
+            ver_block = "In Bitcoin block "+ver[2]+" height "+ver[3]+" at "+ver[4]
+            logging.info(ver_com+"\n"+ver_block)
+            return False
+
     if args.filename:
         seq = readfromfile(args.filename)
     elif args.proof:
@@ -763,6 +796,13 @@ def verify_command(args):
 
     logging.info("Start commitment in block "+verout[-1][2]+" height "+verout[-1][3]+" at "+verout[-1][4])
     logging.info("End commitment in block "+verout[0][2]+" height "+verout[0][3]+" at "+verout[0][4])
+
+    usp = verify_unspent(sproof[0]["txid"],bitcoin_node)
+    if usp:
+        logging.info("End commitment txout unspent")
+    else:
+        logging.info("End commitment txout spent")
+
     return True
 
 def sync_command(args):
