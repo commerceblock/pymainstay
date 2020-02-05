@@ -787,7 +787,7 @@ def verify_command(args):
     # verify staychain txid
     if txid_base:
         if txid_base in schain or txid_base in txin:
-            logging.info("Verified proof sequence against staychain "+txid_base+" slot "+str(slot)+"\n")
+            logging.info("Verified proof sequence against staychain base "+txid_base+" slot "+str(slot)+"\n")
         else:
             logging.error("Proof sequence verified but not on specified staychain base")
             return False
@@ -797,7 +797,7 @@ def verify_command(args):
     logging.info("Start commitment in block "+verout[-1][2]+" height "+verout[-1][3]+" at "+verout[-1][4])
     logging.info("End commitment in block "+verout[0][2]+" height "+verout[0][3]+" at "+verout[0][4])
 
-    usp = verify_unspent(sproof[0]["txid"],bitcoin_node)
+    usp = verify_unspent(seq[0]["txid"],bitcoin_node)
     if usp:
         logging.info("End commitment txout unspent")
     else:
