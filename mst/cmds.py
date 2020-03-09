@@ -225,10 +225,10 @@ def attest_command(args):
 
     if args.commitment:
         if len(args.commitment) != 64:
-            logging.error("Invlaid commitment string: incorrect length")
+            logging.error("Invalid commitment string: incorrect length")
             return False
         if not is_hex(args.commitment):
-            logging.error("Invlaid commitment string: not hex")
+            logging.error("Invalid commitment string: not hex")
             return False
         commitment = args.commitment
 
@@ -323,14 +323,17 @@ def attest_command(args):
     try:
         response = requests.post(args.service_url+'/api/v1/commitment/send', headers=headers, data=json.dumps(data))
         rdata = response.json()
-    except:
+    except Exception as error:
         logging.error("ERROR: could not send request")
+        logging.error(error)
         return False
 
     if 'error' in rdata:
         logging.error("Mainstay service error: "+rdata["error"])
     else:
         logging.info("Attestation sent")
+
+    return rdata
 
 def fetch_command(args):
 
@@ -365,10 +368,10 @@ def fetch_command(args):
                 logging.info(sproof)
             return True
         if len(args.commitment) != 64:
-            logging.error("Invlaid commitment string: incorrect length")
+            logging.error("Invalid commitment string: incorrect length")
             return False
         if not is_hex(args.commitment):
-            logging.error("Invlaid commitment string: not hex")
+            logging.error("Invalid commitment string: not hex")
             return False
         rstring = "/api/v1/commitment/commitment?commitment="+args.commitment
         sproof = get_mainstay_api(args.service_url,rstring)
@@ -382,10 +385,10 @@ def fetch_command(args):
         commitment_list = [item for item in args.list.split(',')]
         for commitment in commitment_list:
             if len(args.commitment) != 64:
-                logging.error("Invlaid commitment string: incorrect length")
+                logging.error("Invalid commitment string: incorrect length")
                 return False
             if not is_hex(args.commitment):
-                logging.error("Invlaid commitment string: not hex")
+                logging.error("Invalid commitment string: not hex")
                 return False
         seq = []
         for commitment in commitment_list:
@@ -422,7 +425,7 @@ def fetch_command(args):
             logging.error("Initial Git commit not valid staychain ID")
             return False        
         if not is_hex(init_txid):
-            logging.error("Invlaid Git commit staychain ID: not hex")
+            logging.error("Invalid Git commit staychain ID: not hex")
 
         seq = load_proofseq(slot)
         seq = update_proofseq(args.service_url,seq,init_slot,init_txid)
@@ -444,10 +447,10 @@ def fetch_command(args):
 
     if args.txid:
         if len(txid) != 64:
-            logging.error("Invlaid TxID string: incorrect length")
+            logging.error("Invalid TxID string: incorrect length")
             return False
         elif not is_hex(txid):
-            logging.error("Invlaid TxID string: not hex")
+            logging.error("Invalid TxID string: not hex")
             return False
 
         seq = load_proofseq(slot)
@@ -524,16 +527,17 @@ def verify_command(args):
 
     if args.commitment:
         if len(args.commitment) != 64:
-            logging.error("Invlaid commitment string: incorrect length")
+            logging.error("Invalid commitment string: incorrect length")
             return False
         if not is_hex(args.commitment):
-            logging.error("Invlaid commitment string: not hex")
+            logging.error("Invalid commitment string: not hex")
             return False
         addproof = get_proof_from_commit(slot,args.commitment)
         if not addproof:
-            logging.info("Retrieving slof proof from "+args.service_url)
+            logging.info("Retrieving slot proof from "+args.service_url)
             rstring = "/api/v1/commitment/commitment?commitment="+args.commitment
             sproof = get_mainstay_api(args.service_url,rstring)
+            if 'response' not in sproof: return False
             addproof = {"txid":sproof["response"]["attestation"]["txid"],
                         "commitment":sproof["response"]["merkleproof"]["commitment"],
                         "merkle_root":sproof["response"]["merkleproof"]["merkle_root"],
@@ -547,10 +551,10 @@ def verify_command(args):
 
     if args.unspent:
         if len(args.unspent) != 64:
-            logging.error("Invlaid commitment string: incorrect length")
+            logging.error("Invalid commitment string: incorrect length")
             return False
         if not is_hex(args.unspent):
-            logging.error("Invlaid commitment string: not hex")
+            logging.error("Invalid commitment string: not hex")
             return False
         try:
             rstring = "/api/v1/commitment/latestproof?position="+str(slot)
@@ -587,7 +591,7 @@ def verify_command(args):
             try:
                 seq = json.loads(args.proof)
             except:
-                logging.error("Invlaid JSON for proof sequence")
+                logging.error("Invalid JSON for proof sequence")
                 return False
     else:
         logging.error("No proof sequence to verify: use option -p or -f to specify proof")
@@ -600,10 +604,10 @@ def verify_command(args):
         commitment_list = [item for item in args.list.split(',')]
         for commitment in commitment_list:
             if len(commitment) != 64:
-                logging.error("Invlaid commitment string: incorrect length")
+                logging.error("Invalid commitment string: incorrect length")
                 return False
             if not is_hex(commitment):
-                logging.error("Invlaid commitment string: not hex")
+                logging.error("Invalid commitment string: not hex")
                 return False
 
         itr = 0
@@ -986,10 +990,10 @@ def keygen_command(args):
                 return False
         else:
             if len(args.public) != 64:
-                logging.error("Invlaid private key: incorrect length")
+                logging.error("Invalid private key: incorrect length")
                 return False
             if not is_hex(args.public):
-                logging.error("Invlaid private key: not hex")
+                logging.error("Invalid private key: not hex")
                 return False
             privkey = args.public   
         public_key = ECPrivkey(bytes.fromhex(privkey)).get_public_key_hex(compressed=True)
@@ -1004,10 +1008,10 @@ def keygen_command(args):
             return False
         key = ECPrivkey(bytes.fromhex(privkey))
         if len(args.sign) != 64:
-            logging.error("Invlaid commitment: incorrect length")
+            logging.error("Invalid commitment: incorrect length")
             return False
         if not is_hex(args.sign):
-            logging.error("Invlaid commitment: not hex")
+            logging.error("Invalid commitment: not hex")
             return False
         message = bytes.fromhex(args.sign)
         sig = key.sign_message(message, True)
