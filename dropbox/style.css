@@ -1,0 +1,79 @@
+
+
+
+
+
+html, body
+{
+	width: 100%;
+	margin: 0;
+	background-color: white;
+	color: #4040c0;
+	font-size: 14pt;
+	font-family: sans-serif;
+}
+
+input, button, td
+{
+	font-size: 10pt;
+}
+
+head
+{
+	display: none;
+}
+
+#main
+{
+	margin-top: 200px;
+	margin-left: 200px;
+	margin-right: 200px;
+}
+
+#attestation
+{
+	display: inline;
+}
+
+table
+{
+	width: 100%;
+}
+
+td
+{
+	width: 100%;
+	border: 1px solid black;
+	padding: 4px 4px 4px 4px;
+}
+
+#attest_file_table tr td:first-child
+{
+	width: 30%;
+}
+
+#attest_file_table tr td:nth-child(2) label
+{
+	display: none;
+}
+
+progress
+{
+	width: 100%;
+}
+
+.input_container
+{
+	display: inline-block;
+	width: 70%;
+}
+
+.input_container input
+{
+	width: 100%;
+}
+
+label.interactive_input
+{
+	width: 30%;
+}
