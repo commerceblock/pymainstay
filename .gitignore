@@ -1,0 +1,4 @@
+build
+dist
+testdir
+*.egg-info
