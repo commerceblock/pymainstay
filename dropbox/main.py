@@ -89,7 +89,7 @@ def verify():
 		args.api_token = request.form['api_token']
 		args.commitment = request.form['commitment']
 	except KeyError as ke:
-		print(ke)
+		#print(ke)
 		abort(400)
 	
 	result = verify_command(args)

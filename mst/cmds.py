@@ -35,6 +35,29 @@ def sha256sum(filename):
             h.update(mv[:n])
     return h.hexdigest()
 
+
+dropbox_chunk_size = 4 * 1024 * 1024
+dropbox_readbuf_size = 64 * 1024
+
+def dropbox_checksum(filename):
+    with open(filename, 'rb') as f:
+        sums = []
+        go_on = True
+        while go_on:
+            h = hashlib.sha256()
+            n = 0
+            while n < dropbox_chunk_size:
+                r = f.read(min(dropbox_readbuf_size, dropbox_chunk_size - n))
+                if not r:
+                    go_on = False
+                    break
+                n += len(r)
+                h.update(r)
+            if n:
+                sums.append(h.digest())
+        return hashlib.sha256(bytes().join(sums)).hexdigest()
+
+
 def is_hex(s):
     try:
         int(s, 16)
@@ -196,6 +219,11 @@ def attest_command(args):
 
     settings = get_settings(args)
 
+    if args.dropbox_checksum:
+        proof_checksum = dropbox_checksum
+    else:
+        proof_checksum = sha256sum
+
     if args.slot:
         slot = str(args.slot)
     else:
@@ -238,7 +266,7 @@ def attest_command(args):
         else:
             filename = os.getcwd() + '/' + args.filename
         try:
-            commitment = sha256sum(filename)
+            commitment = proof_checksum(filename)
         except:
             logging.error("ERROR: could not open specified file")
             return False
@@ -291,7 +319,7 @@ def attest_command(args):
                 logging.warning("WARNING: modification times out of order with name sequence")
             if os.path.isfile(dir_path+file):
                 try:
-                    filehash = sha256sum(dir_path+file)
+                    filehash = proof_checksum(dir_path+file)
                     cstream += filehash
                     time = mtime
                     nfiles += 1
@@ -498,6 +526,11 @@ def fetch_command(args):
 def verify_command(args):
 
     settings = get_settings(args)
+
+    if args.dropbox_checksum:
+        proof_checksum = dropbox_checksum
+    else:
+        proof_checksum = sha256sum
 
     if args.bitcoin_node:
         bitcoin_node = args.bitcoin_node
@@ -722,7 +755,7 @@ def verify_command(args):
                 logging.warning("WARNING: modification times out of order with name sequence")
             if os.path.isfile(dir_path+file):
                 try:
-                    filehash = sha256sum(dir_path+file)
+                    filehash = proof_checksum(dir_path+file)
                     flist.insert(0,file)
                     cstream += filehash
                     time = mtime

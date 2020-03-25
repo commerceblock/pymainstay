@@ -15,11 +15,13 @@
     from browser import window, document, ajax
     from browser.html import maketag
     from hashlib import sha256
+    import json
     
     tr = maketag('tr')
     td = maketag('td')
     progress = maketag('progress')
     label = maketag('label')
+    form_input = maketag('input')
     
     attest_file_list = None
     downloads_pending = 0
@@ -38,6 +40,7 @@
         digest = {}
 
         for n, f in enumerate(sorted(files, key=(lambda x: x.name))):
+            print(dir(f))
             download_name = 'download_' + str(n)
             progress_name = 'progress_' + str(n)
             attest_file_table <= tr(td(f.name) + td(label("downloads progress", **{'for':progress_name}) + progress(id=progress_name, value='0', max='100'), id=download_name))
@@ -77,6 +80,22 @@
         commitment = sha256(sha256(preimage).digest()).digest()
         document['commitment'].value = commitment.hex()
     
+
+    def dropbox_files_hashes(files, something):
+        for n, f in enumerate(sorted(files, key=(lambda x: x.name))):
+            get_metadata = (lambda n: lambda *x: metadata_received(*x))(n)
+            request = ajax.ajax()
+            request.open('POST', 'https://api.dropboxapi.com/2/files/get_metadata', False)
+            request.set_header("Authorization", f"Bearer {bearer}")
+            request.set_header("Content-Type", "application/json")
+            request.bind('complete', get_metadata)
+            request.send({ "path": f"id:{f.id}" })
+            #ajax.post('https://api.dropboxapi.com/2/files/get_metadata', blocking=False, headers={"Authorization":"Bearer 1wgf9qlosdu2r6t", "Content-Type": "application/json"}, data={ "path": f"id:{f.id}" }, oncomplete=get_metadata)
+
+    def metadata_received(*args):
+        for x in args:
+            print(x)
+    
     def attest(event):
         if downloads_pending:
             window.alert("still downloading")
@@ -95,18 +114,71 @@
     def verified(src):
         window.alert(src.read())
     
-    dropbox_button_options = { 'success': dropbox_files_accept, 'linkType': 'direct', 'multiselect': True }
-    dropbox_button = window.Dropbox.createChooseButton(dropbox_button_options)
-    document.getElementById("dropbox_button_container").appendChild(dropbox_button)
-
+    #dropbox_button_options = { 'success': dropbox_files_accept, 'linkType': 'direct', 'multiselect': True }
+    
+    #dropbox_button_options = { 'success': dropbox_files_hashes, 'linkType': 'preview', 'multiselect': True }
+    #dropbox_button = window.Dropbox.createChooseButton(dropbox_button_options)
+    #document.getElementById("dropbox_button_container").appendChild(dropbox_button)
+    
     document['attest'].bind('click', attest)
     document['verify'].bind('click', verify)
+    
+    file_hashes = {}
+    
+    def toggle_selection(event):
+        hash_list = []
+        for box_id, value in file_hashes.items():
+            if document[box_id].checked:
+                hash_list.append(bytes.fromhex(value))
+        preimage = bytes().join(hash_list)
+        commitment = sha256(sha256(preimage).digest()).digest()
+        document['commitment'].value = commitment.hex()
+    
+    def get_folder(req):
+        global file_hashes
+        file_hashes = {}
+        if not (req.status == 200 or req.status == 0): return
+        result = json.loads(req.text)
+        def path_display(f):
+            return f['path_display'][1:]
+        def content_hash(f):
+            return f['content_hash']
+        for n, f in enumerate(_x for _x in sorted(result['entries'], key=path_display) if _x['.tag'] == 'file'):
+            box_id = 'file_' + str(n)
+            file_hashes[box_id] = content_hash(f)
+            checkbox = form_input(**{'type':'checkbox', 'name':box_id, 'id':box_id})
+            checkbox.bind('click', toggle_selection)
+            document['attest_file_table'] <= tr(td(label(path_display(f), **{'class':'checkbox', 'for':box_id}) + checkbox) + td(path_display(f)) + td(content_hash(f)))
+    
+    fragment_params = dict(_pair.split('=') for _pair in document.location.hash[1:].split('&'))
+    try:
+        bearer = fragment_params['access_token']
+        
+        request = ajax.ajax()
+        request.open('POST', 'https://api.dropboxapi.com/2/files/list_folder', False)
+        request.set_header("Authorization", f"Bearer {bearer}")
+        request.set_header("Content-Type", "application/json")
+        request.bind('complete', get_folder)
+        request.send(json.dumps({ \
+            "path": "", \
+            "recursive": True, \
+            "include_media_info": False, \
+            "include_deleted": False, \
+            "include_has_explicit_shared_members": True, \
+            "include_mounted_folders": True, \
+            "include_non_downloadable_files": True \
+        }))
+
+    except KeyError:
+        pass
     
   #]]>
   </script>
  </head>
  <body onload="brython()">
   <form id="main">
+
+   Login to Dropbox: <a href="https://www.dropbox.com/oauth2/authorize?client_id=1wgf9qlosdu2r6t&amp;response_type=token&amp;redirect_uri=http://localhost:5000/">[login]</a> <br/>
 
    Select files from Dropbox: <span id="dropbox_button_container"/> <br/>
    <table id="attest_file_table"> </table> <br/>

@@ -77,3 +77,9 @@ label.interactive_input
 {
 	width: 30%;
 }
+
+label.checkbox
+{
+	display: none;
+}
+
