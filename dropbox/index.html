@@ -23,6 +23,7 @@
     label = maketag('label')
     form_input = maketag('input')
     
+    '''
     attest_file_list = None
     downloads_pending = 0
     digest = {}
@@ -79,6 +80,10 @@
         preimage = bytes.fromhex(''.join([digest[_file_name] for _file_name in sorted(digest.keys())]))
         commitment = sha256(sha256(preimage).digest()).digest()
         document['commitment'].value = commitment.hex()
+
+    #dropbox_button_options = { 'success': dropbox_files_accept, 'linkType': 'direct', 'multiselect': True }
+    #dropbox_button = window.Dropbox.createChooseButton(dropbox_button_options)
+    #document.getElementById("dropbox_button_container").appendChild(dropbox_button)
     
 
     def dropbox_files_hashes(files, something):
@@ -95,6 +100,7 @@
     def metadata_received(*args):
         for x in args:
             print(x)
+    '''
     
     def attest(event):
         if downloads_pending:
@@ -114,15 +120,108 @@
     def verified(src):
         window.alert(src.read())
     
-    #dropbox_button_options = { 'success': dropbox_files_accept, 'linkType': 'direct', 'multiselect': True }
+    def create_mainstay_folder(event):
+        request = ajax.ajax()
+        request.open('POST', 'https://api.dropboxapi.com/2/files/create_folder_v2', False)
+        request.set_header("Authorization", f"Bearer {bearer}")
+        request.set_header("Content-Type", "application/json")
+        request.bind('complete', download_msc_info)
+        request.send(json.dumps({ \
+            "path": "/Mainstay", \
+            "autorename": False, \
+        }))
+        # goto download_msc_info
     
-    #dropbox_button_options = { 'success': dropbox_files_hashes, 'linkType': 'preview', 'multiselect': True }
-    #dropbox_button = window.Dropbox.createChooseButton(dropbox_button_options)
-    #document.getElementById("dropbox_button_container").appendChild(dropbox_button)
+    def download_msc_info(req):
+        if not (req.status == 200 or req.status == 0): return
+        ajax.post('/info', blocking=False, data={'slot': document['slot'].value, 'api_token': document['api_token'].value}, oncomplete=save_msc_info)
+        # goto save_msc_info
     
-    document['attest'].bind('click', attest)
-    document['verify'].bind('click', verify)
+    def save_msc_info(src):
+        info = src.read()
+
+        request = ajax.ajax()
+        request.open('POST', 'https://content.dropboxapi.com/2/files/upload', False)
+        request.set_header("Authorization", f"Bearer {bearer}")
+        request.set_header("Content-Type", "application/octet-stream")
+        request.set_header('Dropbox-API-Arg', json.dumps({ \
+            "path": "/Mainstay/info.txt", \
+            "mode": "add", \
+            "autorename": False, \
+            "mute": False, \
+            "strict_conflict": False \
+        }))
+        #request.bind('complete', lambda event: None)
+        request.send(info)
     
+
+    def fetch(event):
+        commitment = document['commitment'].value
+        slot = document['slot'].value
+        ajax.post('/fetch', blocking=False, data={'commitment': commitment, 'slot': slot, 'api_token': document['api_token'].value}, oncomplete=lambda src: fetched(src, slot, commitment))
+    
+    def fetched(src, slot, commitment):
+        proofseq = src.read()
+
+        request = ajax.ajax()
+        request.open('POST', 'https://content.dropboxapi.com/2/files/upload', False)
+        request.set_header("Authorization", f"Bearer {bearer}")
+        request.set_header("Content-Type", "application/octet-stream")
+        request.set_header('Dropbox-API-Arg', json.dumps({ \
+            "path": f"/Mainstay/{slot}_{commitment}.json", \
+            "mode": "add", \
+            "autorename": False, \
+            "mute": False, \
+            "strict_conflict": False \
+        }))
+        #request.bind('complete', lambda event: None)
+        request.send(proofseq)
+    
+    downloads_pending = 1
+    
+    def get_file_list():
+        request = ajax.ajax()
+        request.open('POST', 'https://api.dropboxapi.com/2/files/list_folder', False)
+        request.set_header("Authorization", f"Bearer {bearer}")
+        request.set_header("Content-Type", "application/json")
+        request.bind('complete', got_file_list)
+        request.send(json.dumps({ \
+            "path": "", \
+            "recursive": True, \
+            "include_media_info": False, \
+            "include_deleted": False, \
+            "include_has_explicit_shared_members": True, \
+            "include_mounted_folders": True, \
+            "include_non_downloadable_files": True \
+        }))
+    
+    def got_file_list(req):
+        global file_hashes, downloads_pending
+        file_hashes = {}
+        if not (req.status == 200 or req.status == 0): return
+        result = json.loads(req.text)
+
+        def path_display(f):
+            return f['path_display'][1:]
+        def content_hash(f):
+            return f['content_hash']
+
+        hash_list = []
+        for n, f in enumerate(_x for _x in sorted(result['entries'], key=path_display) if _x['.tag'] == 'file'):
+            file_path = path_display(f)
+            if file_path.startswith('Mainstay/'): continue
+            box_id = 'file_' + str(n)
+            value = content_hash(f)
+            file_hashes[box_id] = value
+            checkbox = form_input(**{'type':'checkbox', 'name':box_id, 'id':box_id, 'checked':'1'})
+            checkbox.bind('click', toggle_selection)
+            document['attest_file_table'] <= tr(td(label(file_path, **{'class':'checkbox', 'for':box_id}) + checkbox) + td(file_path) + td(value))
+            hash_list.append(bytes().fromhex(value))
+        preimage = bytes().join(hash_list)
+        commitment = sha256(sha256(preimage).digest()).digest()
+        document['commitment'].value = commitment.hex()
+        downloads_pending = 0
+
     file_hashes = {}
     
     def toggle_selection(event):
@@ -134,41 +233,15 @@
         commitment = sha256(sha256(preimage).digest()).digest()
         document['commitment'].value = commitment.hex()
     
-    def get_folder(req):
-        global file_hashes
-        file_hashes = {}
-        if not (req.status == 200 or req.status == 0): return
-        result = json.loads(req.text)
-        def path_display(f):
-            return f['path_display'][1:]
-        def content_hash(f):
-            return f['content_hash']
-        for n, f in enumerate(_x for _x in sorted(result['entries'], key=path_display) if _x['.tag'] == 'file'):
-            box_id = 'file_' + str(n)
-            file_hashes[box_id] = content_hash(f)
-            checkbox = form_input(**{'type':'checkbox', 'name':box_id, 'id':box_id})
-            checkbox.bind('click', toggle_selection)
-            document['attest_file_table'] <= tr(td(label(path_display(f), **{'class':'checkbox', 'for':box_id}) + checkbox) + td(path_display(f)) + td(content_hash(f)))
-    
     fragment_params = dict(_pair.split('=') for _pair in document.location.hash[1:].split('&'))
     try:
         bearer = fragment_params['access_token']
+        get_file_list()
         
-        request = ajax.ajax()
-        request.open('POST', 'https://api.dropboxapi.com/2/files/list_folder', False)
-        request.set_header("Authorization", f"Bearer {bearer}")
-        request.set_header("Content-Type", "application/json")
-        request.bind('complete', get_folder)
-        request.send(json.dumps({ \
-            "path": "", \
-            "recursive": True, \
-            "include_media_info": False, \
-            "include_deleted": False, \
-            "include_has_explicit_shared_members": True, \
-            "include_mounted_folders": True, \
-            "include_non_downloadable_files": True \
-        }))
-
+        document['attest'].bind('click', attest)
+        document['verify'].bind('click', verify)
+        document['create'].bind('click', create_mainstay_folder)
+        document['fetch'].bind('click', fetch)
     except KeyError:
         pass
     
@@ -186,7 +259,8 @@
    <label class="interactive_input" for="commitment">commitment:</label> <span class="input_container"><input type="text" id="commitment" name="commitment"/></span> <br/>
    <label class="interactive_input" for="slot">slot:</label>             <span class="input_container"><input type="text" id="slot" name="slot" value="5"/></span> <br/>
    <label class="interactive_input" for="api_token">api token:</label>   <span class="input_container"><input type="text" id="api_token" name="api_token" value="8db965b9-62f2-49cf-b96e-edbf5caac7fb"/></span> <br/>
-   <input type="button" id="attest" value="attest"/> <input type="button" id="verify" value="verify"/>
+   <input type="button" id="attest" value="attest"/> <input type="button" id="verify" value="verify"/> <br/>
+   <input type="button" id="create" value="create Mainstay folder"/> <input type="button" id="fetch" value="fetch"/> <br/>
   </form>
  </body>
 </html>

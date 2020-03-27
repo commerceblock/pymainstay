@@ -394,6 +394,8 @@ def fetch_command(args):
                 writetofile(sproof,args.filename)
             if args.output and sproof:
                 logging.info(sproof)
+            if hasattr(args, 'save_object'):
+                args.save_object = sproof
             return True
         if len(args.commitment) != 64:
             logging.error("Invalid commitment string: incorrect length")
@@ -407,6 +409,8 @@ def fetch_command(args):
             writetofile(sproof,args.filename)
         if args.output and sproof:
             logging.info(json.dumps(sproof, indent=2, sort_keys=True))
+        if hasattr(args, 'save_object'):
+            args.save_object = sproof
         return True
 
     if args.list:
@@ -427,6 +431,8 @@ def fetch_command(args):
             writetofile(seq,args.filename)
         if args.output and sproof:
             logging.info(json.dumps(seq, indent=2, sort_keys=True))
+        if hasattr(args, 'save_object'):
+            args.save_object = seq
         return True
 
     if args.gitpath:
@@ -463,6 +469,8 @@ def fetch_command(args):
                 writetofile(seq,args.filename)
             if args.output and seq:
                 logging.info(json.dumps(seq, indent=2, sort_keys=True))
+            if hasattr(args, 'save_object'):
+                args.save_object = seq
             save_proofseq(slot,seq)
             logging.info("Git repo initial commit ID: "+init_txid+":"+init_slot)
             logging.info("Sequence length: "+str(len(seq)))
@@ -489,6 +497,8 @@ def fetch_command(args):
                 writetofile(seq,args.filename)
             if args.output and seq:
                 logging.info(json.dumps(seq, indent=2, sort_keys=True))
+            if hasattr(args, 'save_object'):
+                args.save_object = seq
             save_proofseq(slot,seq)
             logging.info("Sequence length: "+str(len(seq)))
             logging.info("    Start: "+seq[-1]["date"])
@@ -515,6 +525,8 @@ def fetch_command(args):
             writetofile(seq[0:-olen],args.filename)
         if args.output and seq:
             logging.info(json.dumps(seq[0:-olen], indent=2, sort_keys=True))
+        if hasattr(args, 'save_object'):
+            args.save_object = seq[0:-olen]
         logging.info("Added "+str(len(seq)-olen)+" proofs")
         logging.info("Sequence length: "+str(len(seq)))
         logging.info("    Start: "+seq[-1]["date"])
@@ -1081,3 +1093,5 @@ def info_command(args):
         settings["txid"] = sproof["response"]["txid"]
         logging.info("Set new config for base TxID")
         save_settings(settings)
+
+    return sproof["response"]["txid"]

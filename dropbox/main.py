@@ -5,7 +5,7 @@
 from flask import Flask, request, abort
 from pathlib import Path
 import json
-from mst.cmds import attest_command, verify_command
+from mst.cmds import attest_command, verify_command, info_command, fetch_command
 
 
 app = Flask('mainstay_dropbox')
@@ -64,6 +64,7 @@ class Record:
 def attest():
 	args = Record()
 	args.service_url = 'https://mainstay.xyz'
+	args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
 	try:
 		args.slot = request.form['slot']
 		args.api_token = request.form['api_token']
@@ -80,7 +81,6 @@ def attest():
 
 @app.route('/verify', methods=['POST'])
 def verify():
-	print(request.form)
 	args = Record()
 	args.service_url = 'https://mainstay.xyz'
 	args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
@@ -89,18 +89,48 @@ def verify():
 		args.api_token = request.form['api_token']
 		args.commitment = request.form['commitment']
 	except KeyError as ke:
-		#print(ke)
 		abort(400)
 	
 	result = verify_command(args)
 	return json.dumps(result), 200, mime_json
 
 
-@app.route('/proof/<commitment>.msp', methods=['GET'])
-def proof(commitment):
-	if len(commitment) != 64 or any(_ch not in '0123456789abcdef' for _ch in commitment):
-		abort(404)
-	return json.dumps({'commitment': commitment}), mime_json
+@app.route('/info', methods=['POST'])
+def info():
+	args = Record()
+	args.service_url = 'https://mainstay.xyz'
+	args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
+	try:
+		args.slot = int(request.form['slot'])
+		args.api_token = request.form['api_token']
+	except KeyError as ke:
+		abort(400)
+	
+	result = info_command(args)
+	if result == False:
+		abort(422)
+	
+	return result, 200, mime_json
+
+
+@app.route('/fetch', methods=['POST'])
+def fetch():
+	args = Record()
+	args.service_url = 'https://mainstay.xyz'
+	args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
+	try:
+		args.slot = int(request.form['slot'])
+		args.api_token = request.form['api_token']
+		args.commitment = request.form['commitment']
+	except KeyError as ke:
+		abort(400)
+	
+	args.save_object = None
+	result = fetch_command(args)
+	if result == False:
+		abort(422)
+	
+	return json.dumps(args.save_object, indent=2, sort_keys=True), 200, mime_text
 
 
 if __name__ == '__main__':
