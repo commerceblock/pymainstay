@@ -44,6 +44,12 @@ def parse_msc_args(raw_args):
                               dest='directory',
                               help="Attest the state of the specified sequence directory.")
 
+    attest_group.add_argument("--dropbox-checksum",
+                              dest='dropbox_checksum',
+                              default=False,
+                              action='count',
+                              help="Use 'Dropbox' hashing algorithm instead of sha256.")
+
     parser_attest.add_argument("-s", "--slot", type=int, default=0,
                               dest='slot',
                               help="Specify the slot position index.")
@@ -127,6 +133,13 @@ def parse_msc_args(raw_args):
     verify_group.add_argument("-u","--unspent", type=str,
                               dest='unspent',
                               help="Verify the given file or commitment is attested to the unspent staychain tip.")
+
+    verify_group.add_argument("--dropbox-checksum",
+                              dest='dropbox_checksum',
+                              default=False,
+                              action='count',
+                              help="Use 'Dropbox' hashing algorithm instead of sha256.")
+
 
     parser_verify.add_argument("-b","--bitcoin-node", dest="bitcoin_node", type=str,
                               default="https://api.blockcypher.com/v1/btc/main/txs/",
