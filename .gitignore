@@ -3,4 +3,4 @@ dist
 testdir
 *.egg-info
 .tox
-
+*~
