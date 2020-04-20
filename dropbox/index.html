@@ -17,91 +17,14 @@
     from hashlib import sha256
     import json
     
+    br = maketag('br')
     tr = maketag('tr')
     td = maketag('td')
+    html_a = maketag('a')
     progress = maketag('progress')
     label = maketag('label')
     form_input = maketag('input')
-    
-    '''
-    attest_file_list = None
-    downloads_pending = 0
-    digest = {}
-    
-    def dropbox_files_accept(files, something):
-        global attest_file_list, downloads_pending, digest
-
-        document['dropbox_button_container'].clear()
-
-        attest_file_list = files
-        attest_file_table = document['attest_file_table']
-        attest_file_table.clear()
-
-        downloads_pending = len(files)
-        digest = {}
-
-        for n, f in enumerate(sorted(files, key=(lambda x: x.name))):
-            print(dir(f))
-            download_name = 'download_' + str(n)
-            progress_name = 'progress_' + str(n)
-            attest_file_table <= tr(td(f.name) + td(label("downloads progress", **{'for':progress_name}) + progress(id=progress_name, value='0', max='100'), id=download_name))
-            
-            digest[f.name] = sha256()
-
-            progress_callback = (lambda progress_name: (lambda src: download_progress(progress_name, src)))(progress_name)
-            downloaded_callback = (lambda download_name, progress_name, file_name: (lambda src: downloaded(download_name, progress_name, file_name, src)))(download_name, progress_name, f.name)
-            #interactive_callback = (lambda file_name: (lambda src: download_interactive(file_name, src)))(f.name)
-            
-            ajax.get(f.link, blocking=False, mode='binary', oncomplete=downloaded_callback, onprogress=progress_callback)
-    
-    def download_interactive(file_name, src):
-        digest[file_name].update(src.read())
-    
-    def download_progress(progress_name, src):
-        try:
-            document[progress_name].value = src.loaded / src.total * 100
-        except (AttributeError, ZeroDivisionError):
-            pass
-    
-    def downloaded(download_name, progress_name, file_name, src):
-        document[progress_name].value = 100
-        def showhash():
-            global downloads_pending
-            digest[file_name].update(src.read())
-            document[download_name].clear()
-            digest[file_name] = digest[file_name].hexdigest()
-            document[download_name] <= digest[file_name]
-            downloads_pending -= 1
-            if downloads_pending == 0:
-                window.setTimeout(all_downloads_finished)
-        window.setTimeout(showhash)
-    
-    def all_downloads_finished():
-        preimage = bytes.fromhex(''.join([digest[_file_name] for _file_name in sorted(digest.keys())]))
-        commitment = sha256(sha256(preimage).digest()).digest()
-        document['commitment'].value = commitment.hex()
-
-    #dropbox_button_options = { 'success': dropbox_files_accept, 'linkType': 'direct', 'multiselect': True }
-    #dropbox_button = window.Dropbox.createChooseButton(dropbox_button_options)
-    #document.getElementById("dropbox_button_container").appendChild(dropbox_button)
-    
-
-    def dropbox_files_hashes(files, something):
-        for n, f in enumerate(sorted(files, key=(lambda x: x.name))):
-            get_metadata = (lambda n: lambda *x: metadata_received(*x))(n)
-            request = ajax.ajax()
-            request.open('POST', 'https://api.dropboxapi.com/2/files/get_metadata', False)
-            request.set_header("Authorization", f"Bearer {bearer}")
-            request.set_header("Content-Type", "application/json")
-            request.bind('complete', get_metadata)
-            request.send({ "path": f"id:{f.id}" })
-            #ajax.post('https://api.dropboxapi.com/2/files/get_metadata', blocking=False, headers={"Authorization":"Bearer 1wgf9qlosdu2r6t", "Content-Type": "application/json"}, data={ "path": f"id:{f.id}" }, oncomplete=get_metadata)
-
-    def metadata_received(*args):
-        for x in args:
-            print(x)
-    '''
-    
+        
     def attest(event):
         if downloads_pending:
             window.alert("still downloading")
@@ -232,6 +155,12 @@
         preimage = bytes().join(hash_list)
         commitment = sha256(sha256(preimage).digest()).digest()
         document['commitment'].value = commitment.hex()
+
+    def show_login_link():
+        self_link = document.location.href.split('#')[0]
+        print(self_link)
+        document['dropbox_login_container'] <= "Login to Dropbox: "
+        document['dropbox_login_container'] <= html_a("[login]", href='https://www.dropbox.com/oauth2/authorize?client_id=1wgf9qlosdu2r6t&response_type=token&redirect_uri=' + self_link) + br()
     
     fragment_params = dict(_pair.split('=') for _pair in document.location.hash[1:].split('&'))
     try:
@@ -243,7 +172,7 @@
         document['create'].bind('click', create_mainstay_folder)
         document['fetch'].bind('click', fetch)
     except KeyError:
-        pass
+        show_login_link()
     
   #]]>
   </script>
@@ -251,7 +180,7 @@
  <body onload="brython()">
   <form id="main">
 
-   Login to Dropbox: <a href="https://www.dropbox.com/oauth2/authorize?client_id=1wgf9qlosdu2r6t&amp;response_type=token&amp;redirect_uri=http://localhost:5000/">[login]</a> <br/>
+   <span id="dropbox_login_container"/>
 
    Select files from Dropbox: <span id="dropbox_button_container"/> <br/>
    <table id="attest_file_table"> </table> <br/>
