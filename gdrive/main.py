@@ -26,6 +26,11 @@ def home():
     else:
       credentials = google.oauth2.credentials.Credentials(
         **flask.session['credentials'])
+      if credentials_to_dict(credentials)['refresh_token'] == None:
+          print(credentials_to_dict(credentials))
+          clear_credentials()
+          revoke()
+          return flask.redirect(flask.url_for('home'))
 
       drive = googleapiclient.discovery.build(
         API_SERVICE_NAME, API_VERSION, credentials=credentials)
@@ -85,15 +90,11 @@ def search_mainstay_files(drive, mainstay_folder_id):
 
     return gfiles
 
-#@app.route('/checksums', methods=['POST'])
 def checksums_post():
-    args = Record()
-    args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
-    posted_checksums = flask.request.form['checksums']
-    processed_checksums = posted_checksums
-    print(processed_checksums)
+    posted_checksums = flask.request.form['checksums'].split()
+    print(posted_checksums)
 
-    return processed_checksums
+    return posted_checksums
 
 @app.route('/about')
 def about():
