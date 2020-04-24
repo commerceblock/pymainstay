@@ -3,3 +3,9 @@ GitPython>=2.0.8
 requests
 ecdsa
 flask
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+pyOpenSSL
+Flask-Table

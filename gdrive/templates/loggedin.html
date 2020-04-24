@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>MainStay files for Google Drive</title>
+  </head>
+  <body>
+    {% extends "template.html" %}
+    {% block content %}
+
+    <h1> Google Drive Files Selection </h1>
+    <p> Successfully logged in. List of files in app directory: </p>
+
+    {{ gfiles }}
+
+ <form method="POST">
+   <table id="attest_file_table"> </table> <br/>
+   <label class="interactive_input" for="checksums">Input checksum(s), comma separated:</label><input type="text" id="checksums" name="checksums"/>
+   <input type="submit" value="Submit">
+   <label class="interactive_input" for="commitment">commitment:</label> <span class="input_container"><input type="text" id="commitment" name="commitment"/></span>
+   <label class="interactive_input" for="slot">slot:</label>             <span class="input_container"><input type="text" id="slot" name="slot" value="5"/></span>
+   <label class="interactive_input" for="api_token">api token:</label>   <span class="input_container"><input type="text" id="api_token" name="api_token" value="8db965b9-62f2-49cf-b96e-edbf5caac7fb"/></span>
+   <input type="button" id="attest" value="attest"/> <input type="button" id="verify" value="verify"/> <input type="button" id="fetch" value="fetch"/> <br/>
+ </form>
+ 
+    {% endblock %}
+  </body>
+</html>
