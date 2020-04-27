@@ -10,7 +10,8 @@ import google_auth_oauthlib.flow
 import googleapiclient.discovery
 from pathlib import Path
 from mst.cmds import attest_command, verify_command, info_command, fetch_command
-from helpers import client_config, GFiles, Record
+from helpers import *
+#client_config, GFiles, Record
 
 SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
 API_SERVICE_NAME = 'drive'
@@ -23,24 +24,25 @@ app.secret_key = os.getenv('APP_SECRET_KEY')
 def home():
     if 'credentials' not in flask.session:
       return flask.render_template("home.html")
-    else:
-      credentials = google.oauth2.credentials.Credentials(
-        **flask.session['credentials'])
-      if credentials_to_dict(credentials)['refresh_token'] == None:
-          print(credentials_to_dict(credentials))
-          clear_credentials()
-          revoke()
-          return flask.redirect(flask.url_for('home'))
 
-      drive = googleapiclient.discovery.build(
-        API_SERVICE_NAME, API_VERSION, credentials=credentials)
+    credentials = google.oauth2.credentials.Credentials(
+      **flask.session['credentials'])
 
-      flask.session['credentials'] = credentials_to_dict(credentials)
+    if credentials_to_dict(credentials)['refresh_token'] == None:
+        clear_credentials()
+        return flask.redirect(flask.url_for('home'))
 
-      gfiles = main_logic(drive)
+    drive = googleapiclient.discovery.build(
+        API_SERVICE_NAME, API_VERSION, credentials=credentials,
+        cache_discovery=False)
 
-      if flask.request.method == 'POST':
-          checksums_post()
+    flask.session['credentials'] = credentials_to_dict(credentials)
+
+    gfiles = main_logic(drive)
+
+    if flask.request.method == 'POST':
+        checksums_operations()
+        attest()
 
     return flask.render_template('loggedin.html', gfiles = gfiles)
 
@@ -90,11 +92,18 @@ def search_mainstay_files(drive, mainstay_folder_id):
 
     return gfiles
 
-def checksums_post():
-    posted_checksums = flask.request.form['checksums'].split()
-    print(posted_checksums)
+def checksums_operations():
+    if flask.request.form['checksums']:
+        posted_checksums = flask.request.form['checksums'].split()
+        print(posted_checksums)
 
-    return posted_checksums
+        return posted_checksums
+
+    if flask.request.form['checksums_verify']:
+        verified_checksums = flask.request.form['checksums_verify']
+        print(verified_checksums)
+
+        return verified_checksums
 
 @app.route('/about')
 def about():
@@ -136,7 +145,6 @@ def oauth2callback():
   credentials = flow.credentials
   flask.session['credentials'] = credentials_to_dict(credentials)
 
-  #return flask.redirect(flask.url_for('test_api_request'))
   return flask.redirect(flask.url_for('home'))
 
 @app.route('/test')
@@ -169,6 +177,8 @@ def revoke():
       params={'token': credentials.token},
       headers = {'content-type': 'application/x-www-form-urlencoded'})
 
+  clear_credentials()
+
   status_code = getattr(revoke, 'status_code')
   if status_code == 200:
     return flask.redirect(flask.url_for('home'))
@@ -181,7 +191,7 @@ def clear_credentials():
   if 'credentials' in flask.session:
     del flask.session['credentials']
 
-  return flask.redirect(flask.url_for('home'))
+  #return flask.redirect(flask.url_for('home'))
 
 def credentials_to_dict(credentials):
   return {'token': credentials.token,
@@ -193,22 +203,25 @@ def credentials_to_dict(credentials):
 
 @app.route('/attest', methods=['POST'])
 def attest():
-	args = Record()
-	args.service_url = 'https://mainstay.xyz'
-	args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
-	try:
-		args.slot = request.form['slot']
-		args.api_token = request.form['api_token']
-		args.commitment = request.form['commitment']
-	except KeyError as ke:
-		abort(400)
-	
-	result = attest_command(args)
-	if result == False:
-		abort(422)
-	
-	return json.dumps(result), 200, mime_json
+    args = Record()
+    args.service_url = 'https://mainstay.xyz'
+    args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
+    try:
+        args.slot = flask.request.form['slot']
+        args.api_token = flask.request.form['api_token']
+        args.commitment = flask.request.form['commitment']
+    except KeyError as ke:
+        flask.flash('Something went wrong')
 
+
+    attrs = vars(args)
+    print(', '.join("%s: %s" % item for item in attrs.items()))
+    result = attest_command(args)
+    print(result)
+    if result == False:
+        flask.flash('Something went wrong')
+
+    return json.dumps(result)
 
 @app.route('/verify', methods=['POST'])
 def verify():
@@ -221,9 +234,9 @@ def verify():
 		args.commitment = request.form['commitment']
 	except KeyError as ke:
 		abort(400)
-	
+
 	result = verify_command(args)
-	return json.dumps(result), 200, mime_json
+	return json.dumps(result)
 
 
 @app.route('/info', methods=['POST'])
@@ -241,7 +254,7 @@ def info():
 	if result == False:
 		abort(422)
 	
-	return result, 200, mime_json
+	return result
 
 
 @app.route('/fetch', methods=['POST'])
