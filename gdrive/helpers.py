@@ -1,4 +1,5 @@
 import os
+import hashlib
 from flask_table import Table, Col
 
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
@@ -28,3 +29,8 @@ class GFiles(Table):
 class Record:
     def __getattr__(self, attr):
         return None
+
+def combine_hashes(string):
+    hashes_wo_space = "".join(string.split())
+    combined = hashlib.sha256(hashes_wo_space.encode('utf-8')).hexdigest()
+    return combined

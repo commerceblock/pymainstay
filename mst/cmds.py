@@ -592,7 +592,7 @@ def verify_command(args):
         ver_com = "Verified commitment "+ver[0]+" in slot "+str(slot)+" in TxID "+ver[1]
         ver_block = "In Bitcoin block "+ver[2]+" height "+ver[3]+" at "+ver[4]
         logging.info(ver_com+"\n"+ver_block)
-        return True
+        return True, ver_com, ver_block
 
     if args.unspent:
         if len(args.unspent) != 64:

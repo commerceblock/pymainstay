@@ -3,33 +3,6 @@
   <head>
     <meta charset="utf-8">
     <title>MainStay files for Google Drive</title>
-    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.5.0.min.js"></script>
-    <script type=text/javascript>
-      $(function() {
-        $('a#attest').bind('click', function() {
-          $.getJSON('/attest', {
-             slot: $('input[name="slot"]').val(),
-             commitment: $('input[name="commitment"]').val()
-             api_token: $('input[name="api_token"]').val()
-          }, function(data) {
-            $("#result").text(data.result);
-          });
-          return false;
-        });
-      });
-    </script>
-
-    <script type=text/javascript>
-           $(function() {
-             $('a#verify').bind('click', function() {
-               $.getJSON('/verify',
-                   function(data) {
-                 //tbc
-               });
-               return false;
-             });
-           });
-   </script>
 
   </head>
   <body>
@@ -43,14 +16,21 @@
 
  <form method="POST">
    <label class="interactive_input" for="checksums">Input checksum(s), space separated:</label><input type="text" id="checksums" name="checksums"/>
-   <input type="submit" value="Submit">
-   <label class="interactive_input" for="commitment">commitment:</label> <span class="input_container"><input type="text" id="commitment" name="commitment"/></span>
-   <label class="interactive_input" for="slot">slot:</label>             <span class="input_container"><input type="text" id="slot" name="slot" value="5"/></span>
-   <label class="interactive_input" for="api_token">api token:</label>   <span class="input_container"><input type="text" id="api_token" name="api_token" value="8db965b9-62f2-49cf-b96e-edbf5caac7fb"/></span>
-   <!--- <a href=# id=attest><button class='btn btn-default'>Attest</button></a><br/> --->
-   <input type="submit" value="Attest">
-   <label class="interactive_input" for="checksums_verify">Input checksum to verify:</label><input type="text" id="checksums_verify" name="checksums_verify"/>
-   <input type="submit" value="Submit">
+   <input type="submit" name="post_checksums" value="Submit">
+   {% if commitment != None %}
+     <label class="interactive_input" for="commitment">commitment:</label> <span class="input_container"><input type="text" id="commitment" name="commitment" value={{ commitment }}></span>
+   {% else %}
+     <label class="interactive_input" for="commitment">commitment:</label> <span class="input_container"><input type="text" id="commitment" name="commitment"/</span>
+   {% endif %}
+   <label class="interactive_input" for="slot">slot:</label>             <span class="input_container"><input type="text" id="slot" name="slot"/></span>
+   <label class="interactive_input" for="api_token">api token:</label>   <span class="input_container"><input type="text" id="api_token" name="api_token"/></span>
+   <input type="submit" name="attest" value="Attest">
+   {% if commitment != None %}
+     <label class="interactive_input" for="checksums_verify">Input commitment to verify:</label><input type="text" id="checksums_verify" name="checksums_verify" value={{ commitment }}>
+   {% else %}
+     <label class="interactive_input" for="checksums_verify">Input commitment to verify:</label><input type="text" id="checksums_verify" name="checksums_verify"/></span>
+   {% endif %}
+   <input type="submit" name="verify" value="Verify">
  </form>
     {% endblock %}
   </body>

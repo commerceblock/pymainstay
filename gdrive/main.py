@@ -11,7 +11,6 @@ import googleapiclient.discovery
 from pathlib import Path
 from mst.cmds import attest_command, verify_command, info_command, fetch_command
 from helpers import *
-#client_config, GFiles, Record
 
 SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
 API_SERVICE_NAME = 'drive'
@@ -28,10 +27,6 @@ def home():
     credentials = google.oauth2.credentials.Credentials(
       **flask.session['credentials'])
 
-    if credentials_to_dict(credentials)['refresh_token'] == None:
-        clear_credentials()
-        return flask.redirect(flask.url_for('home'))
-
     drive = googleapiclient.discovery.build(
         API_SERVICE_NAME, API_VERSION, credentials=credentials,
         cache_discovery=False)
@@ -40,11 +35,22 @@ def home():
 
     gfiles = main_logic(drive)
 
+    commitment = None
     if flask.request.method == 'POST':
-        checksums_operations()
-        attest()
+        if "post_checksums" in flask.request.form:
+            if flask.request.form['checksums']:
+                commitment = checksums_operations()
+        if "attest" in flask.request.form:
+            if flask.request.form['api_token'] and flask.request.form['slot']:
+                attestation = attest()
+                flask.flash(attestation, 'info')
+        if "verify" in flask.request.form:
+            if flask.request.form['checksums_verify']:
+                commitment = checksums_operations()
+                verification = verify()
+                flask.flash(verification, 'success')
 
-    return flask.render_template('loggedin.html', gfiles = gfiles)
+    return flask.render_template('loggedin.html', gfiles = gfiles, commitment = commitment)
 
 def main_logic(drive):
     mainstay_folder_id = search_mainstay_folder(drive)
@@ -94,15 +100,12 @@ def search_mainstay_files(drive, mainstay_folder_id):
 
 def checksums_operations():
     if flask.request.form['checksums']:
-        posted_checksums = flask.request.form['checksums'].split()
-        print(posted_checksums)
-
-        return posted_checksums
+        posted_checksums = flask.request.form['checksums']
+        processed_checksums = combine_hashes(posted_checksums)
+        return processed_checksums
 
     if flask.request.form['checksums_verify']:
         verified_checksums = flask.request.form['checksums_verify']
-        print(verified_checksums)
-
         return verified_checksums
 
 @app.route('/about')
@@ -147,28 +150,10 @@ def oauth2callback():
 
   return flask.redirect(flask.url_for('home'))
 
-@app.route('/test')
-def test_api_request():
-  if 'credentials' not in flask.session:
-    return flask.redirect('authorize')
-
-  credentials = google.oauth2.credentials.Credentials(
-      **flask.session['credentials'])
-
-  drive = googleapiclient.discovery.build(
-      API_SERVICE_NAME, API_VERSION, credentials=credentials)
-
-  files = drive.files().list().execute()
-
-  flask.session['credentials'] = credentials_to_dict(credentials)
-
-  return flask.jsonify(**files)
-
 @app.route('/revoke')
 def revoke():
   if 'credentials' not in flask.session:
-    return ('You need to <a href="/authorize">authorize</a> before ' +
-            'testing the code to revoke credentials.')
+    return flask.redirect(flask.url_for('home'))
 
   credentials = google.oauth2.credentials.Credentials(
     **flask.session['credentials'])
@@ -191,8 +176,6 @@ def clear_credentials():
   if 'credentials' in flask.session:
     del flask.session['credentials']
 
-  #return flask.redirect(flask.url_for('home'))
-
 def credentials_to_dict(credentials):
   return {'token': credentials.token,
           'refresh_token': credentials.refresh_token,
@@ -213,49 +196,26 @@ def attest():
     except KeyError as ke:
         flask.flash('Something went wrong')
 
-
-    attrs = vars(args)
-    print(', '.join("%s: %s" % item for item in attrs.items()))
     result = attest_command(args)
-    print(result)
     if result == False:
-        flask.flash('Something went wrong')
+        flask.flash("Request could not be satisfied")
 
     return json.dumps(result)
 
 @app.route('/verify', methods=['POST'])
 def verify():
-	args = Record()
-	args.service_url = 'https://mainstay.xyz'
-	args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
-	try:
-		args.slot = int(request.form['slot'])
-		args.api_token = request.form['api_token']
-		args.commitment = request.form['commitment']
-	except KeyError as ke:
-		abort(400)
+    args = Record()
+    args.service_url = 'https://mainstay.xyz'
+    args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
+    try:
+        args.slot = int(flask.request.form['slot'])
+        args.api_token = flask.request.form['api_token']
+        args.commitment = flask.request.form['checksums_verify']
+    except KeyError as ke:
+        flask.flash("Request could not be satisfied")
 
-	result = verify_command(args)
-	return json.dumps(result)
-
-
-@app.route('/info', methods=['POST'])
-def info():
-	args = Record()
-	args.service_url = 'https://mainstay.xyz'
-	args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
-	try:
-		args.slot = int(request.form['slot'])
-		args.api_token = request.form['api_token']
-	except KeyError as ke:
-		abort(400)
-	
-	result = info_command(args)
-	if result == False:
-		abort(422)
-	
-	return result
-
+    result = verify_command(args)
+    return json.dumps(result)
 
 @app.route('/fetch', methods=['POST'])
 def fetch():
@@ -263,19 +223,18 @@ def fetch():
 	args.service_url = 'https://mainstay.xyz'
 	args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
 	try:
-		args.slot = int(request.form['slot'])
-		args.api_token = request.form['api_token']
-		args.commitment = request.form['commitment']
+		args.slot = flask.request.form['slot']
+		args.api_token = flask.request.form['api_token']
+		args.commitment = flask.request.form['commitment']
 	except KeyError as ke:
-		abort(400)
+		flask.flash("Request could not be satisfied")
 	
 	args.save_object = None
 	result = fetch_command(args)
 	if result == False:
-		abort(422)
+		flask.flash("Request could not be satisfied")
 	
-	return json.dumps(args.save_object, indent=2, sort_keys=True), 200, mime_text
-
+	return json.dumps(args.save_object, indent=2, sort_keys=True)
 
 if __name__ == '__main__':
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
