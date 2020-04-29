@@ -12,10 +12,6 @@ from pathlib import Path
 from mst.cmds import attest_command, verify_command, info_command, fetch_command
 from helpers import *
 
-SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
-API_SERVICE_NAME = 'drive'
-API_VERSION = 'v3'
-
 app = flask.Flask('mainstay_gdrive')
 app.secret_key = os.getenv('APP_SECRET_KEY')
 
@@ -238,6 +234,6 @@ def fetch():
 	return json.dumps(args.save_object, indent=2, sort_keys=True)
 
 if __name__ == '__main__':
-    # for local test - no ssl
+    #for local test - no ssl
     #os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
     app.run(host='0.0.0.0', debug=False)
