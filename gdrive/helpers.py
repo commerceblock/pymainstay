@@ -13,7 +13,7 @@ client_config = {
     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
     "client_secret": GOOGLE_CLIENT_SECRET,
     "redirect_uris": [
-        'http://localhost:5000'
+        'https://files.mainstay.xyz'
     ],
     "javascript_origins": [
         'https://files.mainstay.xyz'
