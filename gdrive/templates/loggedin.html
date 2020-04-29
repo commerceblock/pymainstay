@@ -9,29 +9,37 @@
     {% extends "template.html" %}
     {% block content %}
 
-    <h1> Google Drive Files Selection </h1>
-    <p> Successfully logged in. List of files in app directory: </p>
+    <header>
+    <div class="container">
+    <h2> Google Drive Files Selection </h2>
+    <div class="alert alert-success col-md-6" role="alert">
+      Successfully logged in. List of files in app directory
+    </div>
 
     {{ gfiles }}
 
- <form method="POST">
-   <label class="interactive_input" for="checksums">Input checksum(s), space separated:</label><input type="text" id="checksums" name="checksums"/>
+    <form method="POST">
+   <div class="form-group w-50">
+   <label for="checksums">Input checksum(s), space separated:</label><input type="text" id="checksums" name="checksums"/>
+   </div>
    <input type="submit" name="post_checksums" value="Submit">
    {% if commitment != None %}
-     <label class="interactive_input" for="commitment">commitment:</label> <span class="input_container"><input type="text" id="commitment" name="commitment" value={{ commitment }}></span>
+     <label for="commitment">commitment:</label> <span class="input_container"><input type="text" id="commitment" name="commitment" value={{ commitment }}></span>
    {% else %}
      <label class="interactive_input" for="commitment">commitment:</label> <span class="input_container"><input type="text" id="commitment" name="commitment"/</span>
    {% endif %}
-   <label class="interactive_input" for="slot">slot:</label>             <span class="input_container"><input type="text" id="slot" name="slot"/></span>
-   <label class="interactive_input" for="api_token">api token:</label>   <span class="input_container"><input type="text" id="api_token" name="api_token"/></span>
+   <label for="slot">slot:</label> <input type="text" id="slot" name="slot"/>
+   <label for="api_token">api token:</label> <input type="text" id="api_token" name="api_token"/>
    <input type="submit" name="attest" value="Attest">
    {% if commitment != None %}
-     <label class="interactive_input" for="checksums_verify">Input commitment to verify:</label><input type="text" id="checksums_verify" name="checksums_verify" value={{ commitment }}>
+     <label for="checksums_verify">Input commitment to verify:</label><input type="text" id="checksums_verify" name="checksums_verify" value={{ commitment }}>
    {% else %}
-     <label class="interactive_input" for="checksums_verify">Input commitment to verify:</label><input type="text" id="checksums_verify" name="checksums_verify"/></span>
+     <label for="checksums_verify">Input commitment to verify:</label><input type="text" id="checksums_verify" name="checksums_verify"/>
    {% endif %}
    <input type="submit" name="verify" value="Verify">
- </form>
+    </form>
+    </div>
+    </header>
     {% endblock %}
   </body>
 </html>

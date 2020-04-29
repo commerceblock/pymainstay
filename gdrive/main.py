@@ -22,6 +22,7 @@ app.secret_key = os.getenv('APP_SECRET_KEY')
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if 'credentials' not in flask.session:
+      flask.flash('Please login first', 'primary')
       return flask.render_template("home.html")
 
     credentials = google.oauth2.credentials.Credentials(
@@ -48,7 +49,7 @@ def home():
             if flask.request.form['checksums_verify']:
                 commitment = checksums_operations()
                 verification = verify()
-                flask.flash(verification, 'success')
+                flask.flash(verification, 'info')
 
     return flask.render_template('loggedin.html', gfiles = gfiles, commitment = commitment)
 
