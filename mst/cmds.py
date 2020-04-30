@@ -556,6 +556,8 @@ def verify_command(args):
 
     if args.dropbox_checksum:
         proof_checksum = dropbox_checksum
+    elif args.md5_checksum:
+        proof_checksum = md5_checksum
     else:
         proof_checksum = sha256sum
 
