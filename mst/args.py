@@ -50,6 +50,11 @@ def parse_msc_args(raw_args):
                               action='count',
                               help="Use 'Dropbox' hashing algorithm instead of sha256.")
 
+    attest_group.add_argument("--md5-checksum",
+                              dest='md5_checksum',
+                              default=False,
+                              help="Use md5 hashing algorithm instead of sha256.")
+
     parser_attest.add_argument("-s", "--slot", type=int, default=0,
                               dest='slot',
                               help="Specify the slot position index.")
@@ -140,6 +145,10 @@ def parse_msc_args(raw_args):
                               action='count',
                               help="Use 'Dropbox' hashing algorithm instead of sha256.")
 
+    verify_group.add_argument("--md5-checksum",
+                              dest='md5_checksum',
+                              default=False,
+                              help="Use md5 hashing algorithm instead of sha256.")
 
     parser_verify.add_argument("-b","--bitcoin-node", dest="bitcoin_node", type=str,
                               default="https://api.blockcypher.com/v1/btc/main/txs/",

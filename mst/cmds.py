@@ -57,6 +57,13 @@ def dropbox_checksum(filename):
                 sums.append(h.digest())
         return hashlib.sha256(bytes().join(sums)).hexdigest()
 
+def md5_checksum(filename):
+    with open(filename, 'rb') as f:
+        h = hashlib.md5()
+        while chunk := f.read(4096):
+            h.update(chunk)
+            md5sum = h.hexdigest()
+    return hashlib.sha256(md5sum.encode('utf-8')).hexdigest()
 
 def is_hex(s):
     try:
@@ -260,17 +267,25 @@ def attest_command(args):
             return False
         commitment = args.commitment
 
-    if args.filename:
-        if args.filename[0] == '/':
-            filename = args.filename
+    if args.filename or args.md5_checksum:
+        if args.filename:
+            arg = args.filename
+            message = "SHA256"
+            proof_checksum = sha256sum
+        if args.md5_checksum:
+            arg = args.md5_checksum
+            message = "SHA256 derived from MD5 hash"
+            proof_checksum = md5_checksum
+        if arg[0] == '/':
+            filename = arg
         else:
-            filename = os.getcwd() + '/' + args.filename
+            filename = os.getcwd() + '/' + arg
         try:
             commitment = proof_checksum(filename)
         except:
             logging.error("ERROR: could not open specified file")
             return False
-        logging.info("SHA256("+args.filename+"): "+commitment)
+        logging.info(message+"("+arg+"): "+commitment)
 
     if args.git:
         if args.git == '0':
