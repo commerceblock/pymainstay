@@ -210,7 +210,11 @@ def attest():
     try:
         args.slot = flask.request.form['slot']
         args.api_token = flask.request.form['api_token']
-        args.commitment = flask.request.form['commitment']
+        if not flask.request.form['commitment']:
+            flask.flash('Please input commitment', 'warning')
+            args.commitment = "None"
+        else:
+            args.commitment = flask.request.form['commitment']
     except KeyError as ke:
         flask.flash('Request could not be satisfied', 'dark')
 
@@ -229,9 +233,9 @@ def verify():
         if not flask.request.form['slot']:
             args.slot = 0
         else:
-            args.slot = flask.request.form['slot']
-        args.api_token = flask.request.form['api_token']
-        args.commitment = flask.request.form['checksums_verify']
+            args.slot = int(flask.request.form['slot'])
+            args.api_token = flask.request.form['api_token']
+            args.commitment = flask.request.form['checksums_verify']
     except KeyError as ke:
         flask.flash('Request could not be satisfied', 'dark')
 
