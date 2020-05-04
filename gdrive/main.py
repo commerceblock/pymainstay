@@ -124,7 +124,7 @@ def checksums_operations():
 def about():
 	return flask.render_template("about.html")
 
-@app.route('/authorize', methods=['GET', 'POST'])
+@app.route('/authorize')
 def authorize():
 
   flow = google_auth_oauthlib.flow.Flow.from_client_config(
@@ -145,7 +145,7 @@ def authorize():
 
   return flask.redirect(authorization_url)
 
-@app.route('/oauth2callback', methods=['GET', 'POST'])
+@app.route('/oauth2callback')
 def oauth2callback():
   state = flask.session['state']
   print(state)
@@ -226,7 +226,10 @@ def verify():
     args.service_url = 'https://mainstay.xyz'
     args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
     try:
-        args.slot = int(flask.request.form['slot'])
+        if not flask.request.form['slot']:
+            args.slot = 0
+        else:
+            args.slot = flask.request.form['slot']
         args.api_token = flask.request.form['api_token']
         args.commitment = flask.request.form['checksums_verify']
     except KeyError as ke:
@@ -234,25 +237,6 @@ def verify():
 
     result = verify_command(args)
     return json.dumps(result)
-
-@app.route('/fetch', methods=['POST'])
-def fetch():
-	args = Record()
-	args.service_url = 'https://mainstay.xyz'
-	args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
-	try:
-		args.slot = flask.request.form['slot']
-		args.api_token = flask.request.form['api_token']
-		args.commitment = flask.request.form['commitment']
-	except KeyError as ke:
-		flask.flash('Request could not be satisfied', 'dark')
-
-	args.save_object = None
-	result = fetch_command(args)
-	if result == False:
-		flask.flash('Request could not be satisfied', 'dark')
-
-	return json.dumps(args.save_object, indent=2, sort_keys=True)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', ssl_context='adhoc', debug=False)
