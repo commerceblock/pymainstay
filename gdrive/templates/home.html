@@ -8,9 +8,14 @@
     {% extends "template.html" %}
     {% block content %}
 
-    <h2> Google Drive Files Selection </h2>
+    <div class="container">
     <div class="alert alert-primary col-md-6" role="alert">
       Not logged in.
+    </div>
+    <h3> Procedure for using MainStay files </h3>
+    <p>1. Login to Google drive. This will create MainStay folder.</p>
+    <p>2. Outside this app, in your Google Drive place files in MainStay folder which you want to use for attestation/verification.</p>
+    <p>3. Press 'Authorize files' to authorize files in MainStay folder. Once selected, files will appear in MainStay Files.</p>
     </div>
 
     {% endblock %}

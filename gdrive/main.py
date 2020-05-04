@@ -31,6 +31,7 @@ def home():
     flask.session['credentials'] = credentials_to_dict(credentials)
 
     gfiles = main_logic(drive)
+    vars = {'gcid': GOOGLE_CLIENT_ID, 'gcappid': GOOGLE_APP_ID, 'gcbrowserkey': GOOGLE_DEVELOPER_KEY, 'gcfolderid': os.getenv('GOOGLE_FOLDER_ID')}
 
     commitment = None
     if flask.request.method == 'POST':
@@ -47,14 +48,14 @@ def home():
                 verification = verify()
                 flask.flash(verification, 'info')
 
-    return flask.render_template('loggedin.html', gfiles = gfiles, commitment = commitment)
+    return flask.render_template('loggedin.html', gfiles = gfiles, commitment = commitment, vars = vars)
 
 def main_logic(drive):
     mainstay_folder_id = search_mainstay_folder(drive)
-    if mainstay_folder_id == "MainStay folder not found. Please create.":
-        gfiles = mainstay_folder_id
+    gfiles = search_mainstay_files(drive, mainstay_folder_id)
+    if gfiles == "No authorized files found in folder.":
+        gfiles == gfiles
     else:
-        gfiles = search_mainstay_files(drive, mainstay_folder_id)
         gfiles = GFiles(gfiles)
 
     return gfiles
@@ -66,11 +67,24 @@ def search_mainstay_folder(drive):
     items = results.get('files', [])
 
     if not items:
-        folder_id = "MainStay folder not found. Please create."
+        flask.flash('MainStay folder not found. Creating.', 'warning')
+        folder_id = create_mainstay_folder(drive)
     else:
         for item in items:
             if 'mainstay' in item['name'].lower():
                 folder_id = item.get('id')
+                os.environ['GOOGLE_FOLDER_ID'] = folder_id
+
+    return folder_id
+
+def create_mainstay_folder(drive):
+    file_metadata = {
+        'name': 'MainStay',
+        'mimeType': 'application/vnd.google-apps.folder'
+    }
+    file = drive.files().create(body=file_metadata,
+                                    fields='id').execute()
+    folder_id = file.get('id')
 
     return folder_id
 
@@ -83,7 +97,8 @@ def search_mainstay_files(drive, mainstay_folder_id):
     items = results.get('files', [])
 
     if not items:
-        gfiles = "No files found in folder."
+        gfiles = "No authorized files found in folder."
+        flask.flash(gfiles, 'warning')
     else:
         gfiles = []
         for item in items:
@@ -109,27 +124,31 @@ def checksums_operations():
 def about():
 	return flask.render_template("about.html")
 
-@app.route('/authorize')
+@app.route('/authorize', methods=['GET', 'POST'])
 def authorize():
 
   flow = google_auth_oauthlib.flow.Flow.from_client_config(
     client_config,
     scopes=SCOPES
   )
- 
+
+  print(flow)
   flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
+  print(flow.redirect_uri)
 
   authorization_url, state = flow.authorization_url(
       access_type='offline',
+      prompt='consent',
       include_granted_scopes='true')
 
   flask.session['state'] = state
 
   return flask.redirect(authorization_url)
 
-@app.route('/oauth2callback')
+@app.route('/oauth2callback', methods=['GET', 'POST'])
 def oauth2callback():
   state = flask.session['state']
+  print(state)
 
   flow = google_auth_oauthlib.flow.Flow.from_client_config(
     client_config,
@@ -137,8 +156,9 @@ def oauth2callback():
       state=state
   )
 
+  print(flow)
   flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
-
+  print(flow.redirect_uri)
   authorization_response = flask.request.url
   flow.fetch_token(authorization_response=authorization_response)
 
@@ -150,6 +170,7 @@ def oauth2callback():
 @app.route('/revoke')
 def revoke():
   if 'credentials' not in flask.session:
+    flask.flash('You have to be loggedin first.', 'warning')
     return flask.redirect(flask.url_for('home'))
 
   credentials = google.oauth2.credentials.Credentials(
@@ -191,11 +212,11 @@ def attest():
         args.api_token = flask.request.form['api_token']
         args.commitment = flask.request.form['commitment']
     except KeyError as ke:
-        flask.flash('Something went wrong')
+        flask.flash('Request could not be satisfied', 'dark')
 
     result = attest_command(args)
     if result == False:
-        flask.flash("Request could not be satisfied")
+        flask.flash('Request could not be satisfied', 'dark')
 
     return json.dumps(result)
 
@@ -209,7 +230,7 @@ def verify():
         args.api_token = flask.request.form['api_token']
         args.commitment = flask.request.form['checksums_verify']
     except KeyError as ke:
-        flask.flash("Request could not be satisfied")
+        flask.flash('Request could not be satisfied', 'dark')
 
     result = verify_command(args)
     return json.dumps(result)
@@ -224,16 +245,14 @@ def fetch():
 		args.api_token = flask.request.form['api_token']
 		args.commitment = flask.request.form['commitment']
 	except KeyError as ke:
-		flask.flash("Request could not be satisfied")
-	
+		flask.flash('Request could not be satisfied', 'dark')
+
 	args.save_object = None
 	result = fetch_command(args)
 	if result == False:
-		flask.flash("Request could not be satisfied")
-	
+		flask.flash('Request could not be satisfied', 'dark')
+
 	return json.dumps(args.save_object, indent=2, sort_keys=True)
 
 if __name__ == '__main__':
-    #for local test - no ssl
-    #os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-    app.run(host='0.0.0.0', debug=False)
+    app.run(host='0.0.0.0', ssl_context='adhoc', debug=False)
