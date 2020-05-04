@@ -63,7 +63,7 @@ def main_logic(drive):
 
 def search_mainstay_folder(drive):
     results = drive.files().list(
-        q="mimeType = 'application/vnd.google-apps.folder'",
+        q="mimeType = 'application/vnd.google-apps.folder' and trashed=false",
         fields ="files(name, id)").execute()
     items = results.get('files', [])
 
@@ -90,7 +90,7 @@ def create_mainstay_folder(drive):
     return folder_id
 
 def search_mainstay_files(drive, mainstay_folder_id):
-    qstring=f"'{mainstay_folder_id}' in parents"
+    qstring=f"'{mainstay_folder_id}' in parents and trashed=false"
     results = drive.files().list(
         spaces='drive',
         q=qstring,

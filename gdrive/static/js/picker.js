@@ -54,7 +54,6 @@ function createPicker() {
 
 function pickerCallback(data) {
   if (data.action == google.picker.Action.PICKED) {
-    var fileId = data.docs[0].id;
     location.reload();
   }
 }
