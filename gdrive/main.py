@@ -31,7 +31,8 @@ def home():
     flask.session['credentials'] = credentials_to_dict(credentials)
 
     gfiles = main_logic(drive)
-    vars = {'gcid': GOOGLE_CLIENT_ID, 'gcappid': GOOGLE_APP_ID, 'gcbrowserkey': GOOGLE_DEVELOPER_KEY, 'gcfolderid': os.getenv('GOOGLE_FOLDER_ID')}
+    vars = {'gcid': GOOGLE_CLIENT_ID, 'gcappid': GOOGLE_APP_ID, 'gcbrowserkey': GOOGLE_DEVELOPER_KEY,
+            'gcfolderid': os.getenv('GOOGLE_FOLDER_ID')}
 
     commitment = None
     if flask.request.method == 'POST':
@@ -132,9 +133,7 @@ def authorize():
     scopes=SCOPES
   )
 
-  print(flow)
   flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
-  print(flow.redirect_uri)
 
   authorization_url, state = flow.authorization_url(
       access_type='offline',
@@ -148,7 +147,6 @@ def authorize():
 @app.route('/oauth2callback')
 def oauth2callback():
   state = flask.session['state']
-  print(state)
 
   flow = google_auth_oauthlib.flow.Flow.from_client_config(
     client_config,
@@ -156,9 +154,8 @@ def oauth2callback():
       state=state
   )
 
-  print(flow)
   flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
-  print(flow.redirect_uri)
+
   authorization_response = flask.request.url
   flow.fetch_token(authorization_response=authorization_response)
 
@@ -231,7 +228,7 @@ def verify():
     args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
     try:
         if not flask.request.form['slot']:
-            args.slot = 0
+            args.slot = -1
         else:
             args.slot = int(flask.request.form['slot'])
             args.api_token = flask.request.form['api_token']
