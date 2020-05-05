@@ -2,11 +2,13 @@ import os
 import hashlib
 from flask_table import Table, Col
 
-SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
+SCOPES = ['https://www.googleapis.com/auth/drive.file']
 API_SERVICE_NAME = 'drive'
 API_VERSION = 'v3'
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
+GOOGLE_DEVELOPER_KEY = os.getenv('GOOGLE_DEVELOPER_KEY')
+GOOGLE_APP_ID = os.getenv('GOOGLE_APP_ID')
 
 client_config = {
   "web": {

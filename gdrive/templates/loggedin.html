@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>MainStay files for Google Drive</title>
-
+    <script type="text/javascript" src="https://apis.google.com/js/api.js"></script>
   </head>
   <body>
     {% extends "template.html" %}
@@ -13,8 +13,17 @@
     <div class="container">
     <h2> Google Drive Files Selection </h2>
     <div class="alert alert-success col-md-6" role="alert">
-      Successfully logged in. List of files in app directory
+      Successfully logged in. List of authorized files.
     </div>
+
+    <input id="picker" type="button" value="Authorize files" onclick="loadPicker()" />
+    <script type="text/javascript">
+      var gcbrowserkey = {{vars.gcbrowserkey|tojson }}
+      var gcid = {{ vars.gcid|tojson }}
+      var gcappid = {{ vars.gcappid|tojson }}
+      var gcfolderid = {{ vars.gcfolderid|tojson }}
+    </script>
+    <script src="static/js/picker.js"></script>
 
     {{ gfiles }}
 
