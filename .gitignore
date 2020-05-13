@@ -4,3 +4,4 @@ testdir
 *.egg-info
 .tox
 *~
+venv
