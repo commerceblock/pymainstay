@@ -21,12 +21,8 @@ def home():
         flask.flash('Please login first', 'primary')
         return flask.render_template("home.html")
 
-    print(flask.session['credentials'])
     credentials = get_token()
-    print(credentials)
-
     gfiles = get_user(credentials)
-
     commitment = None
 
     return flask.render_template('loggedin.html', gfiles=gfiles,
@@ -75,7 +71,7 @@ def oauth2callback():
     }
 
     credentials = flow.fetch_token(token_url, **token_params)
-    flask.session['credentials'] = credentials
+    store_token(credentials)
 
     return flask.redirect(flask.url_for('home'))
 
@@ -91,6 +87,7 @@ def get_token():
         now = time.time()
         expire_time = credentials['expires_at'] - 300
         if now >= expire_time:
+            print("Am I here")
             flow = OAuth2Session(client_id=MICROSOFT_CLIENT_ID,
                                  client_secret=MICROSOFT_CLIENT_SECRET,
                                  token=credentials,
@@ -99,6 +96,7 @@ def get_token():
 
             new_token = flow.refresh_token(token_url)
             store_token(new_token)
+            credentials = new_token
 
         return credentials
     else:
