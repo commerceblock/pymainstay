@@ -7,7 +7,8 @@ import flask
 from authlib.integrations.requests_client import OAuth2Session
 from helpers import (MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET,
                      SCOPES, graph_url, authorize_url, token_url,
-                     GFiles, Record, combine_hashes)
+                     GFiles, Record, combine_hashes, get_user,
+                     get_folder_id, get_created_folder_id)
 from mst.cmds import attest_command, verify_command
 
 
@@ -22,18 +23,42 @@ def home():
         return flask.render_template("home.html")
 
     credentials = get_token()
-    gfiles = get_user(credentials)
+    gfiles = search_mainstay_folder(credentials)
     commitment = None
 
     return flask.render_template('loggedin.html', gfiles=gfiles,
                                  commitment=commitment)
 
 
-def get_user(credentials):
+def search_mainstay_folder(credentials):
     graph_client = OAuth2Session(token=credentials)
-    user = graph_client.get('{0}/me'.format(graph_url))
+    # response = graph_client.get(f"{graph_url}/me/drive/root/children")
+    qstring = "search(q='MainStay')"
+    response = graph_client.get(f"{graph_url}/me/drive/root/{qstring}").json()
+    folder_id = get_folder_id(response)
+    if folder_id:
+        pass
+    else:
+        folder_id = create_mainstay_folder(credentials)
 
-    return user.json()
+    return folder_id
+
+
+def create_mainstay_folder(credentials):
+    graph_client = OAuth2Session(token=credentials)
+    headers = {'Content-Type': 'application/json'}
+    file_metadata = {
+        'name': 'Mainstay',
+        'folder': { },
+        '@microsoft.graph.conflictBehavior': 'fail'
+    }
+
+    response = graph_client.post(f"{graph_url}/me/drive/root/children",
+                                 json=file_metadata, headers=headers).json()
+
+    folder_id = get_created_folder_id(response)
+
+    return folder_id
 
 
 @app.route('/authorize')
@@ -87,7 +112,6 @@ def get_token():
         now = time.time()
         expire_time = credentials['expires_at'] - 300
         if now >= expire_time:
-            print("Am I here")
             flow = OAuth2Session(client_id=MICROSOFT_CLIENT_ID,
                                  client_secret=MICROSOFT_CLIENT_SECRET,
                                  token=credentials,
