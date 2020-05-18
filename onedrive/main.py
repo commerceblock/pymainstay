@@ -7,8 +7,9 @@ import flask
 from authlib.integrations.requests_client import OAuth2Session
 from helpers import (MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET,
                      SCOPES, graph_url, authorize_url, token_url,
-                     GFiles, Record, combine_hashes, get_user,
-                     get_folder_id, get_created_folder_id)
+                     OFiles, Record, combine_hashes, get_user,
+                     get_folder_id_item, get_folder_id_created,
+                     get_files_list)
 from mst.cmds import attest_command, verify_command
 
 
@@ -23,19 +24,50 @@ def home():
         return flask.render_template("home.html")
 
     credentials = get_token()
-    gfiles = search_mainstay_folder(credentials)
+    ofiles = main_logic(credentials)
     commitment = None
+    if flask.request.method == 'POST':
+        if "post_checksums" in flask.request.form:
+            if flask.request.form['checksums']:
+                commitment = checksums_operations()
+        if "attest" in flask.request.form:
+            if flask.request.form['api_token'] and flask.request.form['slot']:
+                attestation = attest()
+                flask.flash(attestation, 'info')
+        if "verify" in flask.request.form:
+            if flask.request.form['checksums_verify']:
+                commitment = checksums_operations()
+                verification = verify()
+                flask.flash(verification, 'info')
 
-    return flask.render_template('loggedin.html', gfiles=gfiles,
+    return flask.render_template('loggedin.html', ofiles=ofiles,
                                  commitment=commitment)
+
+
+def main_logic(credentials):
+    search_mainstay_folder(credentials)
+    ofiles = search_mainstay_files(credentials)
+    if not ofiles:
+        ofiles.append("No files found in Mainstay folder. Please add.")
+    else:
+        ofiles = OFiles(ofiles)
+
+    return ofiles
+
+
+def initialize_context():
+    context = {}
+    context['user'] = flask.session.get('user', {'is_authenticated': False})
+
+    return context
 
 
 def search_mainstay_folder(credentials):
     graph_client = OAuth2Session(token=credentials)
-    # response = graph_client.get(f"{graph_url}/me/drive/root/children")
-    qstring = "search(q='MainStay')"
-    response = graph_client.get(f"{graph_url}/me/drive/root/{qstring}").json()
-    folder_id = get_folder_id(response)
+    graph_path = '/me/drive/root:/Mainstay'
+    response = graph_client.get(f"{graph_url}{graph_path}").json()
+
+    folder_id = get_folder_id_item(response)
     if folder_id:
         pass
     else:
@@ -46,6 +78,7 @@ def search_mainstay_folder(credentials):
 
 def create_mainstay_folder(credentials):
     graph_client = OAuth2Session(token=credentials)
+    graph_path = '/me/drive/root/children'
     headers = {'Content-Type': 'application/json'}
     file_metadata = {
         'name': 'Mainstay',
@@ -53,12 +86,34 @@ def create_mainstay_folder(credentials):
         '@microsoft.graph.conflictBehavior': 'fail'
     }
 
-    response = graph_client.post(f"{graph_url}/me/drive/root/children",
+    response = graph_client.post(f"{graph_url}{graph_path}",
                                  json=file_metadata, headers=headers).json()
 
-    folder_id = get_created_folder_id(response)
+    folder_id = get_folder_id_created(response)
 
     return folder_id
+
+
+def search_mainstay_files(credentials):
+    graph_client = OAuth2Session(token=credentials)
+    graph_path = '/me/drive/root:/Mainstay:/children'
+    response = graph_client.get(f"{graph_url}{graph_path}").json()
+    ofiles = get_files_list(response)
+
+    return ofiles
+
+
+def checksums_operations():
+    if flask.request.form['checksums']:
+        posted_checksums = flask.request.form['checksums']
+        processed_checksums = combine_hashes(posted_checksums)
+        print(f"Pr_check: {processed_checksums}")
+        return processed_checksums
+
+    if flask.request.form['checksums_verify']:
+        verified_checksums = flask.request.form['checksums_verify']
+        print(f"Vr_check: {verified_checksums}")
+        return verified_checksums
 
 
 @app.route('/authorize')
@@ -97,12 +152,23 @@ def oauth2callback():
 
     credentials = flow.fetch_token(token_url, **token_params)
     store_token(credentials)
+    store_user(credentials)
 
     return flask.redirect(flask.url_for('home'))
 
 
 def store_token(credentials):
     flask.session['credentials'] = credentials
+
+
+def store_user(credentials):
+    user = get_user(credentials)
+    flask.session['user'] = {
+        'is_authenticated': True,
+        'name': user['displayName'],
+        'email': user['mail'] if (user['mail'] is not None)
+                              else user['userPrincipalName']
+    }
 
 
 def get_token():
@@ -120,6 +186,7 @@ def get_token():
 
             new_token = flow.refresh_token(token_url)
             store_token(new_token)
+            store_user(new_token)
             credentials = new_token
 
         return credentials

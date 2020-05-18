@@ -15,7 +15,7 @@ token_url = f"{AUTHORITY}{TOKEN_ENDPOINT}"
 graph_url = 'https://graph.microsoft.com/v1.0'
 
 
-class GFiles(Table):
+class OFiles(Table):
     name = Col('Name')
     checksum = Col('Checksum')
     size = Col('Size')
@@ -39,7 +39,7 @@ def combine_hashes(string):
     return combined
 
 
-def get_folder_id(response):
+def get_folder_id_search(response):
     for k, v in response.items():
         if isinstance(v, list):
             value_list = v
@@ -55,10 +55,29 @@ def get_folder_id(response):
     return folder_id
 
 
-def get_created_folder_id(response):
+def get_folder_id_item(response):
+    folder_id = response.get('id')
+
+    return folder_id
+
+
+def get_folder_id_created(response):
     if 'mainstay' in response['name'].lower():
         folder_id = response['id']
     else:
         folder_id = None
 
     return folder_id
+
+
+def get_files_list(response):
+    files_list = response.get('value')
+    ofiles = []
+    for v in files_list:
+        name = v['name']
+        size = v['size']
+        checksum = v['file']['hashes']['quickXorHash']
+        temp = {'name': name, 'checksum': checksum, 'size': size}
+        ofiles.append(temp)
+
+    return ofiles
