@@ -1,10 +1,11 @@
 import hashlib
 import json
+import os
 from flask_table import Table, Col
 from authlib.integrations.requests_client import OAuth2Session
 
-MICROSOFT_CLIENT_ID = '0b2a4858-b7e7-4b15-a2ad-6da23d866dfe'
-MICROSOFT_CLIENT_SECRET = 'cJSPE06=+$ieehvdPNG980$'
+MICROSOFT_CLIENT_ID = os.getenv('MICROSOFT_CLIENT_ID')
+MICROSOFT_CLIENT_SECRET = os.getenv('MICROSOFT_CLIENT_SECRET')
 AUTHORITY = 'https://login.microsoftonline.com/common'
 AUTHORIZE_ENDPOINT = '/oauth2/v2.0/authorize'
 SCOPES = 'openid profile offline_access user.read files.readwrite'
