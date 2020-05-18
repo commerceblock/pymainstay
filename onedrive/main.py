@@ -107,12 +107,12 @@ def checksums_operations():
     if flask.request.form['checksums']:
         posted_checksums = flask.request.form['checksums']
         processed_checksums = combine_hashes(posted_checksums)
-        print(f"Pr_check: {processed_checksums}")
+
         return processed_checksums
 
     if flask.request.form['checksums_verify']:
         verified_checksums = flask.request.form['checksums_verify']
-        print(f"Vr_check: {verified_checksums}")
+
         return verified_checksums
 
 
@@ -254,4 +254,4 @@ def verify():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', ssl_context='adhoc', debug=True)
+    app.run(host='0.0.0.0', ssl_context='adhoc', debug=False)
