@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>MainStay files for Microsoft OneDrive</title>
+  </head>
+  <body>
+    {% extends "template.html" %}
+    {% block content %}
+
+    <header>
+    <div class="container">
+    <h2> Microsoft OneDrive Files Selection </h2>
+    <div class="alert alert-success col-md-6" role="alert">
+      Successfully logged in. List of authorized files.
+    </div>
+
+
+    {{ ofiles }}
+
+    <form method="POST">
+   <div class="form-group w-50">
+   <label for="checksums">Input checksum(s), space separated:</label><input type="text" id="checksums" name="checksums"/>
+   </div>
+   <input type="submit" name="post_checksums" value="Submit">
+   {% if commitment != None %}
+     <label for="commitment">commitment:</label> <span class="input_container"><input type="text" id="commitment" name="commitment" value={{ commitment }}></span>
+   {% else %}
+     <label class="interactive_input" for="commitment">commitment:</label> <span class="input_container"><input type="text" id="commitment" name="commitment"/</span>
+   {% endif %}
+   <label for="slot">slot:</label> <input type="text" id="slot" name="slot"/>
+   <label for="api_token">api token:</label> <input type="text" id="api_token" name="api_token"/>
+   <input type="submit" name="attest" value="Attest">
+   {% if commitment != None %}
+     <label for="checksums_verify">Input commitment to verify:</label><input type="text" id="checksums_verify" name="checksums_verify" value={{ commitment }}>
+   {% else %}
+     <label for="checksums_verify">Input commitment to verify:</label><input type="text" id="checksums_verify" name="checksums_verify"/>
+   {% endif %}
+   <input type="submit" name="verify" value="Verify">
+    </form>
+    </div>
+    </header>
+    {% endblock %}
+  </body>
+</html>

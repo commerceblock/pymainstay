@@ -4,3 +4,5 @@ testdir
 *.egg-info
 .tox
 *~
+.vscode
+venv
