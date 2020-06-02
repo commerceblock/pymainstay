@@ -30,6 +30,7 @@ class GFiles(Table):
     name = Col('Name')
     checksum = Col('Checksum')
     size = Col('Size')
+    modifiedTime = Col('Date')
 
 class Record:
     def __getattr__(self, attr):
