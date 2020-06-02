@@ -35,7 +35,8 @@ class Record:
     def __getattr__(self, attr):
         return None
 
-def combine_hashes(string):
-    hashes_wo_space = "".join(string.split())
+
+def combine_hashes(hashes):
+    hashes_wo_space = "".join(hashes)
     combined = hashlib.sha256(hashes_wo_space.encode('utf-8')).hexdigest()
     return combined
