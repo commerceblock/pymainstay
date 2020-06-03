@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 import os
 import flask
@@ -15,14 +15,15 @@ from helpers import *
 app = flask.Flask('mainstay_gdrive')
 app.secret_key = os.getenv('APP_SECRET_KEY')
 
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if 'credentials' not in flask.session:
-      flask.flash('Please login first', 'primary')
-      return flask.render_template("home.html")
+        flask.flash('Please login first', 'primary')
+        return flask.render_template("home.html")
 
     credentials = google.oauth2.credentials.Credentials(
-      **flask.session['credentials'])
+        **flask.session['credentials'])
 
     drive = googleapiclient.discovery.build(
         API_SERVICE_NAME, API_VERSION, credentials=credentials,
@@ -49,7 +50,9 @@ def home():
                 verification = verify()
                 flask.flash(verification, 'info')
 
-    return flask.render_template('loggedin.html', gfiles = gfiles, commitment = commitment, vars = vars)
+    return flask.render_template(
+        'loggedin.html', gfiles=gfiles, commitment=commitment, vars=vars)
+
 
 def main_logic(drive):
     mainstay_folder_id = search_mainstay_folder(drive)
@@ -61,10 +64,11 @@ def main_logic(drive):
 
     return gfiles
 
+
 def search_mainstay_folder(drive):
     results = drive.files().list(
         q="mimeType = 'application/vnd.google-apps.folder' and trashed=false",
-        fields ="files(name, id)").execute()
+        fields="files(name, id)").execute()
     items = results.get('files', [])
 
     if not items:
@@ -78,23 +82,25 @@ def search_mainstay_folder(drive):
 
     return folder_id
 
+
 def create_mainstay_folder(drive):
     file_metadata = {
         'name': 'MainStay',
         'mimeType': 'application/vnd.google-apps.folder'
     }
     file = drive.files().create(body=file_metadata,
-                                    fields='id').execute()
+                                fields='id').execute()
     folder_id = file.get('id')
 
     return folder_id
 
+
 def search_mainstay_files(drive, mainstay_folder_id):
-    qstring=f"'{mainstay_folder_id}' in parents and trashed=false"
+    qstring = f"'{mainstay_folder_id}' in parents and trashed=false"
     results = drive.files().list(
         spaces='drive',
         q=qstring,
-        fields = "files(name, md5Checksum, id, size, modifiedTime)").execute()
+        fields="files(name, md5Checksum, id, size, modifiedTime)").execute()
     items = results.get('files', [])
 
     if not items:
@@ -107,10 +113,15 @@ def search_mainstay_files(drive, mainstay_folder_id):
             checksum = item.get('md5Checksum', 'no checksum')
             size = item.get('size', '-')
             modifiedTime = item.get('modifiedTime', '-')
-            temp = {'name': name, 'checksum': checksum, 'size': size, 'modifiedTime': modifiedTime}
+            temp = {
+                'name': name,
+                'checksum': checksum,
+                'size': size,
+                'modifiedTime': modifiedTime}
             gfiles.append(temp)
 
     return gfiles
+
 
 def checksums_operations():
     if flask.request.form['checksums']:
@@ -122,83 +133,89 @@ def checksums_operations():
         verified_checksums = flask.request.form['checksums_verify']
         return verified_checksums
 
+
 @app.route('/about')
 def about():
-	return flask.render_template("about.html")
+    return flask.render_template("about.html")
+
 
 @app.route('/authorize')
 def authorize():
 
-  flow = google_auth_oauthlib.flow.Flow.from_client_config(
-    client_config,
-    scopes=SCOPES
-  )
+    flow = google_auth_oauthlib.flow.Flow.from_client_config(
+        client_config,
+        scopes=SCOPES
+    )
 
-  flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
+    flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
 
-  authorization_url, state = flow.authorization_url(
-      access_type='offline',
-      prompt='consent',
-      include_granted_scopes='true')
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        prompt='consent',
+        include_granted_scopes='true')
 
-  flask.session['state'] = state
+    flask.session['state'] = state
 
-  return flask.redirect(authorization_url)
+    return flask.redirect(authorization_url)
+
 
 @app.route('/oauth2callback')
 def oauth2callback():
-  state = flask.session['state']
+    state = flask.session['state']
 
-  flow = google_auth_oauthlib.flow.Flow.from_client_config(
-    client_config,
-      scopes=None,
-      state=state
-  )
+    flow = google_auth_oauthlib.flow.Flow.from_client_config(
+        client_config,
+        scopes=None,
+        state=state
+    )
 
-  flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
+    flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
 
-  authorization_response = flask.request.url
-  flow.fetch_token(authorization_response=authorization_response)
+    authorization_response = flask.request.url
+    flow.fetch_token(authorization_response=authorization_response)
 
-  credentials = flow.credentials
-  flask.session['credentials'] = credentials_to_dict(credentials)
+    credentials = flow.credentials
+    flask.session['credentials'] = credentials_to_dict(credentials)
 
-  return flask.redirect(flask.url_for('home'))
+    return flask.redirect(flask.url_for('home'))
+
 
 @app.route('/revoke')
 def revoke():
-  if 'credentials' not in flask.session:
-    flask.flash('You have to be loggedin first.', 'warning')
-    return flask.redirect(flask.url_for('home'))
+    if 'credentials' not in flask.session:
+        flask.flash('You have to be loggedin first.', 'warning')
+        return flask.redirect(flask.url_for('home'))
 
-  credentials = google.oauth2.credentials.Credentials(
-    **flask.session['credentials'])
+    credentials = google.oauth2.credentials.Credentials(
+        **flask.session['credentials'])
 
-  revoke = requests.post('https://oauth2.googleapis.com/revoke',
-      params={'token': credentials.token},
-      headers = {'content-type': 'application/x-www-form-urlencoded'})
+    revoke = requests.post('https://oauth2.googleapis.com/revoke',
+                           params={'token': credentials.token},
+                           headers={'content-type': 'application/x-www-form-urlencoded'})
 
-  clear_credentials()
+    clear_credentials()
 
-  status_code = getattr(revoke, 'status_code')
-  if status_code == 200:
-    return flask.redirect(flask.url_for('home'))
-  else:
-    return flask.redirect(flask.url_for('home'))
+    status_code = getattr(revoke, 'status_code')
+    if status_code == 200:
+        return flask.redirect(flask.url_for('home'))
+    else:
+        return flask.redirect(flask.url_for('home'))
 
 
 @app.route('/clear')
 def clear_credentials():
-  if 'credentials' in flask.session:
-    del flask.session['credentials']
+    if 'credentials' in flask.session:
+        del flask.session['credentials']
+
 
 def credentials_to_dict(credentials):
-  return {'token': credentials.token,
-          'refresh_token': credentials.refresh_token,
-          'token_uri': credentials.token_uri,
-          'client_id': credentials.client_id,
-          'client_secret': credentials.client_secret,
-          'scopes': credentials.scopes}
+    return {'token': credentials.token,
+            'refresh_token': credentials.refresh_token,
+            'token_uri': credentials.token_uri,
+            'client_id': credentials.client_id,
+            'client_secret': credentials.client_secret,
+            'scopes': credentials.scopes}
+
 
 @app.route('/attest', methods=['POST'])
 def attest():
@@ -222,6 +239,7 @@ def attest():
 
     return json.dumps(result)
 
+
 @app.route('/verify', methods=['POST'])
 def verify():
     args = Record()
@@ -239,6 +257,7 @@ def verify():
 
     result = verify_command(args)
     return json.dumps(result)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', ssl_context='adhoc', debug=False)
