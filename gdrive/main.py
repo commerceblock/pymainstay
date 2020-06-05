@@ -21,21 +21,26 @@ app.secret_key = os.getenv('APP_SECRET_KEY')
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if 'credentials' not in flask.session:
-        flask.flash('Please login first', 'primary')
-        return flask.render_template("home.html")
+        return flask.render_template("login.html")
 
-    credentials = google.oauth2.credentials.Credentials(
-        **flask.session['credentials'])
+    credentials = google.oauth2.credentials.Credentials(**flask.session['credentials'])
 
     drive = googleapiclient.discovery.build(
-        API_SERVICE_NAME, API_VERSION, credentials=credentials,
-        cache_discovery=False)
+        API_SERVICE_NAME,
+        API_VERSION,
+        credentials=credentials,
+        cache_discovery=False
+    )
 
     flask.session['credentials'] = credentials_to_dict(credentials)
 
     gfiles = main_logic(drive)
-    vars = {'gcid': GOOGLE_CLIENT_ID, 'gcappid': GOOGLE_APP_ID, 'gcbrowserkey': GOOGLE_DEVELOPER_KEY,
-            'gcfolderid': os.getenv('GOOGLE_FOLDER_ID')}
+    vars = {
+        'gcid': GOOGLE_CLIENT_ID,
+        'gcappid': GOOGLE_APP_ID,
+        'gcbrowserkey': GOOGLE_DEVELOPER_KEY,
+        'gcfolderid': os.getenv('GOOGLE_FOLDER_ID')
+    }
 
     commitment = None
     if flask.request.method == 'POST':
@@ -227,10 +232,11 @@ def attest():
     args = Record()
     args.service_url = 'https://mainstay.xyz'
     args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
+
+    data = flask.request.get_json()
     try:
-        data = flask.request.get_json()
-        args.slot = data.get('slot')
-        args.api_token = data.get('api_token')
+        args.slot = data.get('slotNumber')
+        args.api_token = data.get('apiKey')
         if not data.get('commitment'):
             flask.flash('Please input commitment', 'warning')
             args.commitment = "None"
@@ -251,15 +257,16 @@ def verify():
     args = Record()
     args.service_url = 'https://mainstay.xyz'
     args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
+
+    data = flask.request.get_json()
+
+    slot_number = data.get('slotNumber')
     try:
-        if not flask.request.form['slot']:
-            args.slot = -1
-        else:
-            args.slot = int(flask.request.form['slot'])
-            args.api_token = flask.request.form['api_token']
-            args.commitment = flask.request.form['checksums_verify']
-    except KeyError as ke:
-        flask.flash('Request could not be satisfied', 'dark')
+        args.slot = int(slot_number) if slot_number else -1
+    except:
+        return json.dumps({"Error": "Please input right slot number"})
+
+    args.commitment = data.get('commitment')
 
     result = verify_command(args)
     return json.dumps(result)

@@ -1,262 +1,243 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="description" content="">
-    <meta name="keywords" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1"/>
-    <title>MainStay</title>
+{% extends "base.html" %}
 
+{% block content %}
+    <section>
+        <div class="myContainer table">
 
-    <!-- Bootstrap CSS -->
+            <div id="dynamic-tabs">
 
-    <link rel="stylesheet" href="../static/assets/css/bootstrap-select.min.css"/>
-    <link rel="stylesheet" href="../static/assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap.min.css"/>
-    <link rel="stylesheet" href=" https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css"/>
+                <div class="title-bar">
+                    <h1>Google Drive/…/MainStay</h1>
+                    <ul>
+                        <li class="tabs">
+                            <a href="#tab-attest">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14.31" height="17.577"
+                                     viewBox="0 0 14.31 17.577">
+                                    <path id="Path_2029" data-name="Path 2029"
+                                          d="M739.051,511.88h-3.717V509.7h-1.35c.543-3.356.979-6.249.979-6.888a3.067,3.067,0,0,0-6.134,0c0,.639.436,3.532.979,6.888h-1.349v2.178h-3.718v3.733h.933v1.711h12.444v-1.711h.933ZM731.9,500.441a2.376,2.376,0,0,1,2.373,2.373c0,.3-.131,1.6-.985,6.869h-2.775c-.855-5.274-.986-6.57-.986-6.869A2.376,2.376,0,0,1,731.9,500.441Zm-2.743,9.955h5.487v1.412h-5.487Zm8.271,6.234H726.369v-.945h11.055Zm.933-1.711H725.435v-2.345h12.922Z"
+                                          transform="translate(-724.741 -499.747)" fill="#737373"/>
+                                </svg>
+                                ATTEST</a>
+                        </li>
+                        <li class="tabs">
+                            <a href="#tab-verify">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="17.291" height="17.424"
+                                     viewBox="0 0 17.291 17.424">
+                                    <g id="Group_3354" data-name="Group 3354" transform="translate(-744.493 -500.145)">
+                                        <path id="Path_2027" data-name="Path 2027"
+                                              d="M761.784,517.079l-3.935-3.936a7.774,7.774,0,1,0-.5.484l3.941,3.942Zm-16.6-9.209a7.031,7.031,0,1,1,7.032,7.031A7.039,7.039,0,0,1,745.187,507.87Z"
+                                              fill="#737373"/>
+                                        <path id="Path_2028" data-name="Path 2028"
+                                              d="M751.438,510.489l-3.1-2.746-.46.52,3.682,3.264,4.588-6.6-.57-.4Z"
+                                              fill="#737373"/>
+                                    </g>
+                                </svg>
+                                VERIFY</a>
+                        </li>
 
-
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@100;200;300;400;500;600&display=swap"
-          rel="stylesheet">
-    <link href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css' rel='stylesheet'
-          type='text/css'>
-    <link rel="stylesheet" href="../static/css/style.css">
-
-    <script src="../static/assets/js/jquery.min.js"></script>
-    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="../static/assets/js/popper.min.js"></script>
-    <script src="../static/assets/js/bootstrap.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap.min.js"></script>
-    <script src="../static/js/script.js"></script>
-
-
-    <!--[if lt IE 9]>
-    <script src="../static/assets/js/html5shiv.min.js"></script>
-    <script src="../static/assets/js/respond.min.js"></script>
-    <![endif]-->
-
-</head>
-<body>
-<header class="container">
-    <nav class="navbar navbar-expand-lg ">
-        <a class="navbar-brand mr-auto" href="/">
-            <img src="../static/img/mainstay-primary-logo.png" alt="logo">
-        </a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <i class="fa fa-bars"></i>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav ">
-                <li class="nav-item ">
-                    <a class="nav-link colored" href="#"> Attest and verify </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Explore</a>
-                </li>
-
-            </ul>
-
-        </div>
-    </nav>
-</header>
-<section>
-    <div class="container table">
-
-        <div id="dynamic-tabs">
-            <div class="title-bar">
-                <h1>Google Drive/…/MainStay</h1>
-                <ul>
-                    <li class="tabs">
-                        <a href="#tab-attest">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14.31" height="17.577"
-                                 viewBox="0 0 14.31 17.577">
-                                <path id="Path_2029" data-name="Path 2029"
-                                      d="M739.051,511.88h-3.717V509.7h-1.35c.543-3.356.979-6.249.979-6.888a3.067,3.067,0,0,0-6.134,0c0,.639.436,3.532.979,6.888h-1.349v2.178h-3.718v3.733h.933v1.711h12.444v-1.711h.933ZM731.9,500.441a2.376,2.376,0,0,1,2.373,2.373c0,.3-.131,1.6-.985,6.869h-2.775c-.855-5.274-.986-6.57-.986-6.869A2.376,2.376,0,0,1,731.9,500.441Zm-2.743,9.955h5.487v1.412h-5.487Zm8.271,6.234H726.369v-.945h11.055Zm.933-1.711H725.435v-2.345h12.922Z"
-                                      transform="translate(-724.741 -499.747)" fill="#737373"/>
+                    </ul>
+                    <div>
+                        <a onclick="loadPicker()" class="button">
+                            Authorize Files
+                        </a>
+                        <a href="{{ url_for('revoke') }}" class="button red-border">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12.444" height="12.432"
+                                 viewBox="0 0 12.444 12.432">
+                                <path id="x001_-_E0A9" data-name="x001 - E0A9"
+                                      d="M6.222-17.784l-.444-.432L.006-12.444l-5.784-5.772-.444.432L-.438-12-6.222-6.216l.444.432L.006-11.568,5.778-5.784l.444-.432L.438-12Z"
+                                      transform="translate(6.222 18.216)" fill="#737373"/>
                             </svg>
-                            ATTEST</a>
-                    </li>
-                    <li class="tabs">
-                        <a href="#tab-verify">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="17.291" height="17.424"
-                                 viewBox="0 0 17.291 17.424">
-                                <g id="Group_3354" data-name="Group 3354" transform="translate(-744.493 -500.145)">
-                                    <path id="Path_2027" data-name="Path 2027"
-                                          d="M761.784,517.079l-3.935-3.936a7.774,7.774,0,1,0-.5.484l3.941,3.942Zm-16.6-9.209a7.031,7.031,0,1,1,7.032,7.031A7.039,7.039,0,0,1,745.187,507.87Z"
-                                          fill="#737373"/>
-                                    <path id="Path_2028" data-name="Path 2028"
-                                          d="M751.438,510.489l-3.1-2.746-.46.52,3.682,3.264,4.588-6.6-.57-.4Z"
-                                          fill="#737373"/>
-                                </g>
-                            </svg>
-                            VERIFY</a>
-                    </li>
+                            Revoke Access
+                        </a>
+                    </div>
+                </div>
 
-                </ul>
-                <a href="#" class="button">Revoke Access</a>
+                <div id="tab-attest">
+
+                    <table id="table-attest" class="display general-table " style="width:100%">
+                        <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Name</th>
+                            <th>File Size</th>
+                            <th>Date Added</th>
+                            <th>Checksum</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        {% for file in gfiles.items %}
+
+                            <tr>
+                                <td>
+                                    <img src="../static/img/{{ file.name[-3:] }}-icon.svg" alt="{{ file.name[-3:] }}"
+                                         name="{{ file.name }}">
+                                </td>
+                                <td>
+                                    {% if file.name|length < 30 %}
+                                        {{ file.name }}
+                                    {% else %}
+                                        {{ file.name[:27] }}...
+                                    {% endif %}
+
+                                    <input type="hidden" name="name" value="{{ file.name }}">
+                                </td>
+                                <td>
+                                    {{ file.size }} mb
+                                    <input type="hidden" name="size" value="{{ file.size }}">
+                                </td>
+                                <td>1 hour ago</td>
+                                <td>
+                                    {{ file.checksum }}
+                                    <input type="hidden" name="checksum" value="{{ file.checksum }}">
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+
+                        </tbody>
+
+                        <tfoot>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        </tfoot>
+
+                    </table>
+
+                    <div class="form">
+                        <form id="attest_form">
+                            <div class="inputs">
+                                <div>
+                                    <p>Your MainStay Details</p>
+                                    <fieldset class="form-group">
+                                        <input type="text" class="form-control slotNumber" id="slotNumber"
+                                               name="slotNumber" required>
+                                        <label for="slotNumber">Your Slot Number</label>
+
+                                    </fieldset>
+
+                                </div>
+
+                                <fieldset class="form-group api">
+                                    <input type="text" class="form-control apikey" id="apikey" name="apiKey">
+                                    <label for="apikey">API Key</label>
+
+                                </fieldset>
+
+                                <fieldset class="form-group">
+                                    <input type="text" class="form-control readOnly" id="attest-commitment"
+                                           readonly="readonly" placeholder="Commitment" name="commitment" required>
+                                    {#                                    <label for="readOnly">Commitment</label>#}
+                                </fieldset>
+                            </div>
+                            <div class="right-side">
+                                <p id="selected_files_to_attest">No files selected</p>
+                                <button type="submit" class="btn btn-primary button">Attest to MainStay
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="tab-verify">
+                    <table id="table-verify" class="display general-table " style="width:100%">
+                        <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Name</th>
+                            <th>File Size</th>
+                            <th>Date Added</th>
+                            <th>Checksum</th>
+
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        {% for file in gfiles.items %}
+
+                            <tr>
+                                <td>
+                                    <img src="../static/img/{{ file.name[-3:] }}-icon.svg" alt="{{ file.name[-3:] }}"
+                                         name="{{ file.name }}">
+                                </td>
+                                <td>
+                                    {% if file.name|length < 30 %}
+                                        {{ file.name }}
+                                    {% else %}
+                                        {{ file.name[:27] }}...
+                                    {% endif %}
+                                </td>
+                                <td>{{ file.size }} mb</td>
+                                <td>1 hour ago</td>
+                                <td>{{ file.checksum }}</td>
+                            </tr>
+
+                        {% endfor %}
+
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        </tfoot>
+
+                    </table>
+                    <div class="form">
+                        <form id="verify_form">
+                            <div class="inputs">
+                                <div>
+                                    <p>Your MainStay Details</p>
+                                    <fieldset class="form-group">
+                                        <input type="text" class="form-control slotNumber" id="slotNumber" required
+                                               name="slotNumber">
+                                        <label for="slotNumber">Your Slot Number</label>
+
+                                    </fieldset>
+
+                                </div>
+                                <fieldset class="form-group">
+                                    <input type="text" class="form-control readOnly" id="verify-commitment"
+                                           readonly="readonly" placeholder="Commitment" required name="commitment">
+                                    {#<label for="readOnly">Commitment</label>#}
+                                </fieldset>
+
+
+                            </div>
+                            <div class="right-side">
+                                <p id="selected_files_to_verify">No files selected</p>
+                                <button type="submit" class="btn btn-primary button">Verify the Proof</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
             </div>
 
-            <div id="tab-attest">
-                <table id="table" class="display general-table " style="width:100%">
-                    <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Name</th>
-                        <th>File Size</th>
-                        <th>Date Added</th>
-                        <th>Checksum</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+        </div>
 
-                    {% for file in gfiles.items %}
-                        <tr>
-                            <td>
-                                <img src="../static/img/{{ file.name[-3:] }}-icon.svg" alt="{{ file.name[-3:] }}"
-                                     name="{{ file.name }}">
-                            </td>
-                            <td> {{ file.name }} </td>
-                            <td>{{ file.size }} mb</td>
-                            <td>1 hour ago</td>
-                            <td>{{ file.checksum }}</td>
-                        </tr>
-
-                    {% endfor %}
-
-                    </tbody>
-                    <tfoot>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    </tfoot>
-
-                </table>
-
-                <div class="form">
-                    <div class="inputs">
-                        <div>
-                            <p>Your MainStay Details</p>
-                            <fieldset class="form-group">
-                                <input type="text" class="form-control" id="slotNumber">
-                                <label for="slotNumber">Your Slot Number</label>
-
-                            </fieldset>
-
-                        </div>
-                        <fieldset class="form-group">
-                            <input type="text" class="form-control" id="apikey">
-                            <label for="apikey">API Key</label>
-
-                        </fieldset>
-
+        <!-- Modal -->
+        <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Result</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-                    <div class="right-side">
-                        <p id="selected_files_to_attest">No files selected</p>
-                        <button id="attest_to_mainstay" class="btn btn-primary button">Attest to MainStay</button>
+                    <div class="modal-body">
                     </div>
-
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
                 </div>
             </div>
-
-
-            <div id="tab-verify">
-                <table id="table-verify" class="display general-table " style="width:100%">
-                    <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Name</th>
-                        <th>File Size</th>
-                        <th>Date Added</th>
-                        <th>Checksum</th>
-
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for file in gfiles.items %}
-                        <tr>
-                            <td>
-                                <img src="../static/img/{{ file.name[-3:] }}-icon.svg" alt="{{ file.name[-3:] }}">
-                            </td>
-                            <td> {{ file.name }} </td>
-                            <td>{{ file.size }} mb</td>
-                            <td>1 hour ago</td>
-                            <td>{{ file.checksum }}</td>
-                        </tr>
-
-                    {% endfor %}
-
-
-                    </tbody>
-                    <tfoot>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    </tfoot>
-
-                </table>
-                <div class="form">
-                    <div class="inputs">
-                        <div>
-                            <p>Your MainStay Details</p>
-                            <fieldset class="form-group">
-                                <input type="text" class="form-control" id="slotNumber2">
-                                <label for="slotNumber">Your Slot Number</label>
-
-                            </fieldset>
-
-                        </div>
-                        <fieldset class="form-group">
-                            <input type="text" class="form-control" id="apikey2">
-                            <label for="apikey">API Key</label>
-
-                        </fieldset>
-
-
-                    </div>
-                    <div class="right-side">
-                        <p id="selected_files_to_verify">No files selected</p>
-                        <a href="#" class="btn btn-primary button">Verify the Proof</a>
-                    </div>
-
-                </div>
-            </div>
-
         </div>
 
+    </section>
 
-    </div>
-</section>
-
-<footer class="footer-block ">
-
-    <div class="row ">
-        <div class="col-md-6 left-side text-center">
-            <div class="container">
-                <a class="navbar-brand mr-auto" href="/">
-                    <img src="../static/img/footer-logo.png" alt="logo">
-                </a>
-                <span>Mainstay-mvc v0.5.0-release © 2019 CommerceBlock Limited. All rights reserved.</span>
-            </div>
-        </div>
-        <div class="col-md-6 right-side text-center">
-            <ul class="container">
-                <li><a href="#">About</a></li>
-                <li><a href="#">Pricing</a></li>
-                <li><a href="#">API Information</a></li>
-                <li><a href="#">Privacy Policy</a></li>
-                <li><a href="#">Terms and Conditions</a></li>
-            </ul>
-        </div>
-
-    </div>
-
-
-</footer>
-</body>
-</html>
+{% endblock %}
