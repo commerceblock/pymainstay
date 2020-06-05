@@ -18,6 +18,7 @@ from helpers import *
 app = flask.Flask('mainstay_gdrive')
 app.secret_key = os.getenv('APP_SECRET_KEY')
 
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if 'credentials' not in flask.session:
@@ -111,7 +112,7 @@ def search_mainstay_files(drive, mainstay_folder_id):
     results = drive.files().list(
         spaces='drive',
         q=qstring,
-        fields="files(name, md5Checksum, id, size)").execute()
+        fields="files(name, md5Checksum, id, size, modifiedTime)").execute()
     items = results.get('files', [])
 
     if not items:
@@ -123,7 +124,12 @@ def search_mainstay_files(drive, mainstay_folder_id):
             name = item['name']
             checksum = item.get('md5Checksum', 'no checksum')
             size = item.get('size', '-')
-            temp = {'name': name, 'checksum': checksum, 'size': size}
+            modifiedTime = item.get('modifiedTime', '-')
+            temp = {
+                'name': name,
+                'checksum': checksum,
+                'size': size,
+                'modifiedTime': modifiedTime}
             gfiles.append(temp)
 
     return gfiles
@@ -286,6 +292,7 @@ def verify():
         return json.dumps(response_data)
 
     return json.dumps(response_data)
+
 
 
 if __name__ == '__main__':

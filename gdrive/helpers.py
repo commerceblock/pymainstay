@@ -11,25 +11,28 @@ GOOGLE_DEVELOPER_KEY = os.getenv('GOOGLE_DEVELOPER_KEY')
 GOOGLE_APP_ID = os.getenv('GOOGLE_APP_ID')
 
 client_config = {
-  "web": {
-    "client_id": GOOGLE_CLIENT_ID,
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://accounts.google.com/o/oauth2/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_secret": GOOGLE_CLIENT_SECRET,
-    "redirect_uris": [
-        'https://files.mainstay.xyz'
-    ],
-    "javascript_origins": [
-        'https://files.mainstay.xyz'
-    ]
-  }
+    "web": {
+        "client_id": GOOGLE_CLIENT_ID,
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://accounts.google.com/o/oauth2/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "redirect_uris": [
+            'https://files.mainstay.xyz'
+        ],
+        "javascript_origins": [
+            'https://files.mainstay.xyz'
+        ]
+    }
 }
+
 
 class GFiles(Table):
     name = Col('Name')
     checksum = Col('Checksum')
     size = Col('Size')
+    modifiedTime = Col('Date')
+
 
 class Record:
     def __getattr__(self, attr):
