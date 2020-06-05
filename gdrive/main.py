@@ -8,6 +8,8 @@ import json
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
+import datetime
+import maya
 from pathlib import Path
 
 from flask import Response
@@ -62,6 +64,12 @@ def home():
 
     for file in gfiles.items:
         file['extension'] = file.get('name').split('.')[-1]
+        if file['size'] != '-':
+            file['size'] = round(int(file.get('size')) / (1024 * 1024), 2)
+
+        dt = maya.parse(gfiles.items[0].get('modifiedTime')).datetime()
+        file['modifiedTime'] = f"{dt.date()} {dt.time()} {dt.tzinfo}"
+
 
     return flask.render_template('index.html', gfiles=gfiles, commitment=commitment, vars=vars)
 
@@ -292,7 +300,6 @@ def verify():
         return json.dumps(response_data)
 
     return json.dumps(response_data)
-
 
 
 if __name__ == '__main__':

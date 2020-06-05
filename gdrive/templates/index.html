@@ -87,7 +87,8 @@
                                     {{ file.size }} mb
                                     <input type="hidden" name="size" value="{{ file.size }}">
                                 </td>
-                                <td>1 hour ago</td>
+                                <td>{{ file.modifiedTime }}
+                                    <input type="hidden" name="date" value="{{ file.modifiedTime }}"></td>
                                 <td>
                                     {{ file.checksum }}
                                     <input type="hidden" name="checksum" value="{{ file.checksum }}">
@@ -171,7 +172,8 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ file.size }} mb</td>
-                                <td>1 hour ago</td>
+                                <td>{{ file.modifiedTime }}
+                                    <input type="hidden" name="date" value="{{ file.modifiedTime }}"></td>
                                 <td>{{ file.checksum }}</td>
                             </tr>
 
