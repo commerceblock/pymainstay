@@ -57,6 +57,11 @@ def home():
                 verification = verify()
                 flask.flash(verification, 'info')
 
+    gfiles = main_logic(drive)
+
+    for file in gfiles.items:
+        file['extension'] = file.get('name').split('.')[-1]
+
     return flask.render_template('index.html', gfiles=gfiles, commitment=commitment, vars=vars)
 
 
@@ -268,8 +273,19 @@ def verify():
 
     args.commitment = data.get('commitment')
 
+    response_data = {}
+
     result = verify_command(args)
-    return json.dumps(result)
+
+    if result:
+        response_data['commitment'] = args.commitment
+        response_data['slot'] = args.slot
+        response_data['txid'] = result[1].split()[8]
+        response_data['bitcoin_block'] = result[2].split()[3]
+        response_data['height'] = result[2].split()[5]
+        return json.dumps(response_data)
+
+    return json.dumps(response_data)
 
 
 if __name__ == '__main__':

@@ -676,10 +676,30 @@ section .login-page .right img {
   text-decoration: none;
 }
 
-.modal .modal-footer button {
-  background-color: #Ffffff;
-  border: none;
+.modal .modal-body {
+  margin-bottom: 10px;
+}
+.modal .modal-body form input {
   color: #1C1C1C;
+  border: 1px solid #A9A8A7;
+  width: 100%;
+  height: calc(1.5em + .5rem + 2px);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: 0.2rem;
+  margin-bottom: 10px;
+}
+.modal .modal-body form label {
+  display: block;
+  font-size: 14px;
+  margin-top: 10px;
+  font-weight: 500;
+}
+.modal .modal-footer button {
+  background-color: #3D9155;
+  border: none;
+  color: #ffffff;
 }
 
 @media only screen and (max-width: 1024px) {

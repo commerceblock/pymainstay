@@ -915,11 +915,34 @@ section {
 }
 
 .modal {
+  .modal-body {
+    margin-bottom: 10px;
+    form {
+      input {
+         color: #1C1C1C;
+     border: 1px solid #A9A8A7;
+    width: 100%;
+    height: calc(1.5em + .5rem + 2px);
+    padding: .25rem .5rem;
+    font-size: .875rem;
+    line-height: 1.5;
+    border-radius: .2rem;
+    margin-bottom: 10px;
+
+      }
+      label {
+        display: block;
+        font-size: 14px;
+        margin-top: 10px;
+        font-weight: 500;
+      }
+    }
+  }
   .modal-footer {
     button {
-      background-color: #Ffffff;
+      background-color: #3D9155;
       border:none;
-       color: #1C1C1C;
+       color: #ffffff;
     }
   }
 }

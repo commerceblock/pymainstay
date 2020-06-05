@@ -71,8 +71,8 @@
 
                             <tr>
                                 <td>
-                                    <img src="../static/img/{{ file.name[-3:] }}-icon.svg" alt="{{ file.name[-3:] }}"
-                                         name="{{ file.name }}">
+                                    <img src="../static/img/extension-icons/{{ file.extension }}-icon.svg"
+                                         alt="{{ extension }}">
                                 </td>
                                 <td>
                                     {% if file.name|length < 30 %}
@@ -113,7 +113,7 @@
                                 <div>
                                     <p>Your MainStay Details</p>
                                     <fieldset class="form-group">
-                                        <input type="text" class="form-control slotNumber" id="slotNumber"
+                                        <input type="number" class="form-control slotNumber" id="slotNumber"
                                                name="slotNumber" required>
                                         <label for="slotNumber">Your Slot Number</label>
 
@@ -160,8 +160,8 @@
 
                             <tr>
                                 <td>
-                                    <img src="../static/img/{{ file.name[-3:] }}-icon.svg" alt="{{ file.name[-3:] }}"
-                                         name="{{ file.name }}">
+                                    <img src="../static/img/extension-icons/{{ file.extension }}-icon.svg"
+                                         alt="{{ extension }}">
                                 </td>
                                 <td>
                                     {% if file.name|length < 30 %}
@@ -192,7 +192,7 @@
                                 <div>
                                     <p>Your MainStay Details</p>
                                     <fieldset class="form-group">
-                                        <input type="text" class="form-control slotNumber" id="slotNumber" required
+                                        <input type="number" class="form-control slotNumber" id="slotNumber" required
                                                name="slotNumber">
                                         <label for="slotNumber">Your Slot Number</label>
 
@@ -220,7 +220,7 @@
         </div>
 
         <!-- Modal -->
-        <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal fade" id="attestResultModal" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -230,6 +230,62 @@
                         </button>
                     </div>
                     <div class="modal-body">
+                        <form id="attest-result-form">
+                            <div>
+                                <label for="">Response</label>
+                                <input type="text" disabled name="response" >
+                            </div>
+                            <div>
+                                <label for="">Date</label>
+                                <input type="text" disabled name="date" value="">
+                            </div>
+                            <div>
+                                <label for="">Allowance</label>
+                                <input type="text" disabled name="allowance" value="">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Modal -->
+        <div class="modal fade" id="verifyResultModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Result</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="" id="verify-result-form">
+                            <div>
+                                <label for="">Commitment</label>
+                                <input type="text" disabled name="commitment" value="">
+                            </div>
+                            <div>
+                                <label for="">Slot</label>
+                                <input type="text" disabled name="slot" value="">
+                            </div>
+                            <div>
+                                <label for="">TxID</label>
+                                <input type="text" disabled name="txid" value="">
+                            </div>
+                            <div>
+                                <label for="">Bitcoin block</label>
+                                <input type="text" disabled name="bitcoin_block" value="">
+                            </div>
+                            <div>
+                                <label for="">Height</label>
+                                <input type="text" disabled name="height" value="">
+                            </div>
+                        </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -239,5 +295,14 @@
         </div>
 
     </section>
+
+    <script type="text/javascript">
+        var gcbrowserkey = {{vars.gcbrowserkey|tojson }};
+        var gcid = {{ vars.gcid|tojson }};
+        var gcappid = {{ vars.gcappid|tojson }};
+        var gcfolderid = {{ vars.gcfolderid|tojson }};
+    </script>
+
+    <script src="../static/js/picker.js"></script>
 
 {% endblock %}
