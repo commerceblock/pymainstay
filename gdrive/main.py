@@ -37,14 +37,6 @@ def home():
 
     flask.session['credentials'] = credentials_to_dict(credentials)
 
-    gfiles = main_logic(drive)
-    vars = {
-        'gcid': GOOGLE_CLIENT_ID,
-        'gcappid': GOOGLE_APP_ID,
-        'gcbrowserkey': GOOGLE_DEVELOPER_KEY,
-        'gcfolderid': os.getenv('GOOGLE_FOLDER_ID')
-    }
-
     commitment = None
     if flask.request.method == 'POST':
         if "post_checksums" in flask.request.form:
@@ -62,14 +54,12 @@ def home():
 
     gfiles = main_logic(drive)
 
-    for file in gfiles.items:
-        file['extension'] = file.get('name').split('.')[-1]
-        if file['size'] != '-':
-            file['size'] = round(int(file.get('size')) / (1024 * 1024), 2)
-
-        dt = maya.parse(gfiles.items[0].get('modifiedTime')).datetime()
-        file['modifiedTime'] = f"{dt.date()} {dt.time()} {dt.tzinfo}"
-
+    vars = {
+        'gcid': GOOGLE_CLIENT_ID,
+        'gcappid': GOOGLE_APP_ID,
+        'gcbrowserkey': GOOGLE_DEVELOPER_KEY,
+        'gcfolderid': os.getenv('GOOGLE_FOLDER_ID')
+    }
 
     return flask.render_template('index.html', gfiles=gfiles, commitment=commitment, vars=vars)
 
@@ -78,9 +68,17 @@ def main_logic(drive):
     mainstay_folder_id = search_mainstay_folder(drive)
     gfiles = search_mainstay_files(drive, mainstay_folder_id)
     if gfiles == "No authorized files found in folder.":
-        gfiles == gfiles
+        return []
     else:
         gfiles = GFiles(gfiles)
+
+    for file in gfiles.items:
+        file['extension'] = file.get('name').split('.')[-1]
+        if file['size'] != '-':
+            file['size'] = round(int(file.get('size')) / (1024 * 1024), 2)
+
+        dt = maya.parse(gfiles.items[0].get('modifiedTime')).datetime()
+        file['modifiedTime'] = f"{dt.date()} {dt.time()} {dt.tzinfo}"
 
     return gfiles
 
@@ -270,9 +268,8 @@ def attest():
 
     if result:
         response_data['response'] = result.get('response')
-        response_data['date'] = datetime.datetime.fromtimestamp(result.get('timestamp')/1000)
+        response_data['date'] = datetime.datetime.fromtimestamp(result.get('timestamp') / 1000)
         response_data['allowance'] = f"Cost: {result.get('allowance').get('cost')}"
-
 
     if result == False:
         flask.flash('Request could not be satisfied', 'dark')
