@@ -265,10 +265,19 @@ def attest():
         flask.flash('Request could not be satisfied', 'dark')
 
     result = attest_command(args)
+
+    response_data = {}
+
+    if result:
+        response_data['response'] = result.get('response')
+        response_data['date'] = datetime.datetime.fromtimestamp(result.get('timestamp')/1000)
+        response_data['allowance'] = f"Cost: {result.get('allowance').get('cost')}"
+
+
     if result == False:
         flask.flash('Request could not be satisfied', 'dark')
 
-    return json.dumps(result)
+    return response_data
 
 
 @app.route('/verify', methods=['POST'])
@@ -298,8 +307,10 @@ def verify():
         response_data['bitcoin_block'] = result[2].split()[3]
         response_data['height'] = result[2].split()[5]
         return json.dumps(response_data)
+    else:
+        response_data['commitment'] = "Unknown"
 
-    return json.dumps(response_data)
+    return response_data
 
 
 if __name__ == '__main__':
