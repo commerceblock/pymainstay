@@ -26,6 +26,9 @@ a:hover {
 .navbar-collapse {
   flex-direction: row-reverse;
 }
+.navbar-collapse .nav-item.revoke-mobile {
+  display: none;
+}
 .navbar-collapse .nav-link.colored {
   color: #3D9155;
   text-decoration: underline;
@@ -776,6 +779,21 @@ section .login-page .right img {
 
   .footer-block .right-side ul {
     display: block;
+  }
+}
+@media only screen and (max-width: 991px) {
+  .navbar-nav {
+    margin-top: 30px;
+    -webkit-box-shadow: 1px 10px 12px 0px #ccc;
+    box-shadow: 1px 10px 12px 0px #ccc;
+    padding: 20px;
+  }
+  .navbar-nav .nav-item.revoke-mobile {
+    display: block;
+  }
+
+  section .table .title-bar .button.red-border, section table.dataTable .title-bar .button.red-border {
+    display: none;
   }
 }
 @media only screen and (max-width: 767px) {

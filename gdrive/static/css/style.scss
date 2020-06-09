@@ -27,6 +27,10 @@ a {
 
 .navbar-collapse {
   flex-direction: row-reverse;
+  .nav-item.revoke-mobile {
+    display: none;
+
+}
 
   .nav-link {
     &.colored {
@@ -1056,6 +1060,24 @@ section {
     }
 
 
+  }
+}
+
+@media only screen and (max-width: 991px) {
+  .navbar-nav {
+    margin-top:30px;
+        -webkit-box-shadow: 1px 10px 12px 0px #ccc;
+    box-shadow: 1px 10px 12px 0px #ccc;
+    padding: 20px;
+    .nav-item.revoke-mobile {
+    display: block;
+
+}
+  }
+  section .table .title-bar .button, section table.dataTable .title-bar .button {
+    &.red-border {
+      display: none;
+    }
   }
 }
 
