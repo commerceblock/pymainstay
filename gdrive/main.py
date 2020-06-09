@@ -8,7 +8,12 @@ import json
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
+import datetime
+import maya
 from pathlib import Path
+
+from flask import Response
+
 from mst.cmds import attest_command, verify_command, info_command, fetch_command
 from helpers import *
 
@@ -19,21 +24,26 @@ app.secret_key = os.getenv('APP_SECRET_KEY')
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if 'credentials' not in flask.session:
-        flask.flash('Please login first', 'primary')
-        return flask.render_template("home.html")
+        return flask.render_template("login.html")
 
-    credentials = google.oauth2.credentials.Credentials(
-        **flask.session['credentials'])
+    credentials = google.oauth2.credentials.Credentials(**flask.session['credentials'])
 
     drive = googleapiclient.discovery.build(
-        API_SERVICE_NAME, API_VERSION, credentials=credentials,
-        cache_discovery=False)
+        API_SERVICE_NAME,
+        API_VERSION,
+        credentials=credentials,
+        cache_discovery=False
+    )
 
     flask.session['credentials'] = credentials_to_dict(credentials)
 
     gfiles = main_logic(drive)
-    vars = {'gcid': GOOGLE_CLIENT_ID, 'gcappid': GOOGLE_APP_ID, 'gcbrowserkey': GOOGLE_DEVELOPER_KEY,
-            'gcfolderid': os.getenv('GOOGLE_FOLDER_ID')}
+    vars = {
+        'gcid': GOOGLE_CLIENT_ID,
+        'gcappid': GOOGLE_APP_ID,
+        'gcbrowserkey': GOOGLE_DEVELOPER_KEY,
+        'gcfolderid': os.getenv('GOOGLE_FOLDER_ID')
+    }
 
     commitment = None
     if flask.request.method == 'POST':
@@ -50,8 +60,18 @@ def home():
                 verification = verify()
                 flask.flash(verification, 'info')
 
-    return flask.render_template(
-        'loggedin.html', gfiles=gfiles, commitment=commitment, vars=vars)
+    gfiles = main_logic(drive)
+
+    for file in gfiles.items:
+        file['extension'] = file.get('name').split('.')[-1]
+        if file['size'] != '-':
+            file['size'] = round(int(file.get('size')) / (1024 * 1024), 2)
+
+        dt = maya.parse(gfiles.items[0].get('modifiedTime')).datetime()
+        file['modifiedTime'] = f"{dt.date()} {dt.time()} {dt.tzinfo}"
+
+
+    return flask.render_template('index.html', gfiles=gfiles, commitment=commitment, vars=vars)
 
 
 def main_logic(drive):
@@ -123,6 +143,16 @@ def search_mainstay_files(drive, mainstay_folder_id):
     return gfiles
 
 
+@app.route('/get_commitment', methods=['POST'])
+def get_commitment():
+    try:
+        posted_checksums = flask.request.get_json().get('checksums')
+        processed_checksums = combine_hashes(posted_checksums)
+        return processed_checksums
+    except:
+        return Response()
+
+
 def checksums_operations():
     if flask.request.form['checksums']:
         posted_checksums = flask.request.form['checksums']
@@ -141,7 +171,6 @@ def about():
 
 @app.route('/authorize')
 def authorize():
-
     flow = google_auth_oauthlib.flow.Flow.from_client_config(
         client_config,
         scopes=SCOPES
@@ -222,14 +251,16 @@ def attest():
     args = Record()
     args.service_url = 'https://mainstay.xyz'
     args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
+
+    data = flask.request.get_json()
     try:
-        args.slot = flask.request.form['slot']
-        args.api_token = flask.request.form['api_token']
-        if not flask.request.form['commitment']:
+        args.slot = data.get('slotNumber')
+        args.api_token = data.get('apiKey')
+        if not data.get('commitment'):
             flask.flash('Please input commitment', 'warning')
             args.commitment = "None"
         else:
-            args.commitment = flask.request.form['commitment']
+            args.commitment = data.get('commitment')
     except KeyError as ke:
         flask.flash('Request could not be satisfied', 'dark')
 
@@ -245,18 +276,30 @@ def verify():
     args = Record()
     args.service_url = 'https://mainstay.xyz'
     args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
+
+    data = flask.request.get_json()
+
+    slot_number = data.get('slotNumber')
     try:
-        if not flask.request.form['slot']:
-            args.slot = -1
-        else:
-            args.slot = int(flask.request.form['slot'])
-            args.api_token = flask.request.form['api_token']
-            args.commitment = flask.request.form['checksums_verify']
-    except KeyError as ke:
-        flask.flash('Request could not be satisfied', 'dark')
+        args.slot = int(slot_number) if slot_number else -1
+    except:
+        return json.dumps({"Error": "Please input right slot number"})
+
+    args.commitment = data.get('commitment')
+
+    response_data = {}
 
     result = verify_command(args)
-    return json.dumps(result)
+
+    if result:
+        response_data['commitment'] = args.commitment
+        response_data['slot'] = args.slot
+        response_data['txid'] = result[1].split()[8]
+        response_data['bitcoin_block'] = result[2].split()[3]
+        response_data['height'] = result[2].split()[5]
+        return json.dumps(response_data)
+
+    return json.dumps(response_data)
 
 
 if __name__ == '__main__':

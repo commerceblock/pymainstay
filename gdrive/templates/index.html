@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <section>
+        <div class="myContainer table">
+
+            <div id="dynamic-tabs">
+
+                <div class="title-bar">
+                    <h1>Google Drive/…/MainStay</h1>
+                    <ul>
+                        <li class="tabs">
+                            <a href="#tab-attest">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14.31" height="17.577"
+                                     viewBox="0 0 14.31 17.577">
+                                    <path id="Path_2029" data-name="Path 2029"
+                                          d="M739.051,511.88h-3.717V509.7h-1.35c.543-3.356.979-6.249.979-6.888a3.067,3.067,0,0,0-6.134,0c0,.639.436,3.532.979,6.888h-1.349v2.178h-3.718v3.733h.933v1.711h12.444v-1.711h.933ZM731.9,500.441a2.376,2.376,0,0,1,2.373,2.373c0,.3-.131,1.6-.985,6.869h-2.775c-.855-5.274-.986-6.57-.986-6.869A2.376,2.376,0,0,1,731.9,500.441Zm-2.743,9.955h5.487v1.412h-5.487Zm8.271,6.234H726.369v-.945h11.055Zm.933-1.711H725.435v-2.345h12.922Z"
+                                          transform="translate(-724.741 -499.747)" fill="#737373"/>
+                                </svg>
+                                ATTEST</a>
+                        </li>
+                        <li class="tabs">
+                            <a href="#tab-verify">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="17.291" height="17.424"
+                                     viewBox="0 0 17.291 17.424">
+                                    <g id="Group_3354" data-name="Group 3354" transform="translate(-744.493 -500.145)">
+                                        <path id="Path_2027" data-name="Path 2027"
+                                              d="M761.784,517.079l-3.935-3.936a7.774,7.774,0,1,0-.5.484l3.941,3.942Zm-16.6-9.209a7.031,7.031,0,1,1,7.032,7.031A7.039,7.039,0,0,1,745.187,507.87Z"
+                                              fill="#737373"/>
+                                        <path id="Path_2028" data-name="Path 2028"
+                                              d="M751.438,510.489l-3.1-2.746-.46.52,3.682,3.264,4.588-6.6-.57-.4Z"
+                                              fill="#737373"/>
+                                    </g>
+                                </svg>
+                                VERIFY</a>
+                        </li>
+
+                    </ul>
+                    <div>
+                        <a onclick="loadPicker()" class="button">
+                            Authorize Files
+                        </a>
+                        <a href="{{ url_for('revoke') }}" class="button red-border">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12.444" height="12.432"
+                                 viewBox="0 0 12.444 12.432">
+                                <path id="x001_-_E0A9" data-name="x001 - E0A9"
+                                      d="M6.222-17.784l-.444-.432L.006-12.444l-5.784-5.772-.444.432L-.438-12-6.222-6.216l.444.432L.006-11.568,5.778-5.784l.444-.432L.438-12Z"
+                                      transform="translate(6.222 18.216)" fill="#737373"/>
+                            </svg>
+                            Revoke Access
+                        </a>
+                    </div>
+                </div>
+
+                <div id="tab-attest">
+
+                    <table id="table-attest" class="display general-table " style="width:100%">
+                        <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Name</th>
+                            <th>File Size</th>
+                            <th>Date Added</th>
+                            <th>Checksum</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        {% for file in gfiles.items %}
+
+                            <tr>
+                                <td>
+                                    <img src="../static/img/extension-icons/{{ file.extension }}-icon.svg"
+                                         alt="{{ extension }}">
+                                </td>
+                                <td>
+                                    {% if file.name|length < 30 %}
+                                        {{ file.name }}
+                                    {% else %}
+                                        {{ file.name[:27] }}...
+                                    {% endif %}
+
+                                    <input type="hidden" name="name" value="{{ file.name }}">
+                                </td>
+                                <td>
+                                    {{ file.size }} mb
+                                    <input type="hidden" name="size" value="{{ file.size }}">
+                                </td>
+                                <td>{{ file.modifiedTime }}
+                                    <input type="hidden" name="date" value="{{ file.modifiedTime }}"></td>
+                                <td>
+                                    {{ file.checksum }}
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+
+                        </tbody>
+
+                        <tfoot>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        </tfoot>
+
+                    </table>
+
+                    <div class="form">
+                        <form id="attest_form">
+                            <div class="inputs">
+                                <div>
+                                    <p>Your MainStay Details</p>
+                                    <fieldset class="form-group">
+                                        <input type="number" class="form-control slotNumber" id="slotNumber"
+                                               name="slotNumber" required>
+                                        <label for="slotNumber">Your Slot Number</label>
+
+                                    </fieldset>
+
+                                </div>
+
+                                <fieldset class="form-group api">
+                                    <input type="text" class="form-control apikey" id="apikey" name="apiKey">
+                                    <label for="apikey">API Key</label>
+
+                                </fieldset>
+
+                                <fieldset class="form-group">
+                                    <input type="text" class="form-control readOnly" id="attest-commitment"
+                                           readonly="readonly" placeholder="Commitment" name="commitment" required>
+                                    {#                                    <label for="readOnly">Commitment</label>#}
+                                </fieldset>
+                            </div>
+                            <div class="right-side">
+                                <p id="selected_files_to_attest">No files selected</p>
+                                <button type="submit" class="btn btn-primary button">Attest to MainStay
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="tab-verify">
+                    <table id="table-verify" class="display general-table " style="width:100%">
+                        <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Name</th>
+                            <th>File Size</th>
+                            <th>Date Added</th>
+                            <th>Checksum</th>
+
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        {% for file in gfiles.items %}
+
+                            <tr>
+                                <td>
+                                    <img src="../static/img/extension-icons/{{ file.extension }}-icon.svg"
+                                         alt="{{ extension }}">
+                                </td>
+                                <td>
+                                    {% if file.name|length < 30 %}
+                                        {{ file.name }}
+                                    {% else %}
+                                        {{ file.name[:27] }}...
+                                    {% endif %}
+                                </td>
+                                <td>{{ file.size }} mb</td>
+                                <td>{{ file.modifiedTime }}
+                                    <input type="hidden" name="date" value="{{ file.modifiedTime }}"></td>
+                                <td>{{ file.checksum }}</td>
+                            </tr>
+
+                        {% endfor %}
+
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        </tfoot>
+
+                    </table>
+                    <div class="form">
+                        <form id="verify_form">
+                            <div class="inputs">
+                                <div>
+                                    <p>Your MainStay Details</p>
+                                    <fieldset class="form-group">
+                                        <input type="number" class="form-control slotNumber" id="slotNumber" required
+                                               name="slotNumber">
+                                        <label for="slotNumber">Your Slot Number</label>
+
+                                    </fieldset>
+
+                                </div>
+                                <fieldset class="form-group">
+                                    <input type="text" class="form-control readOnly" id="verify-commitment"
+                                           readonly="readonly" placeholder="Commitment" required name="commitment">
+                                    {#<label for="readOnly">Commitment</label>#}
+                                </fieldset>
+
+
+                            </div>
+                            <div class="right-side">
+                                <p id="selected_files_to_verify">No files selected</p>
+                                <button type="submit" class="btn btn-primary button">Verify the Proof</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="attestResultModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Result</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="attest-result-form">
+                            <div>
+                                <label for="">Response</label>
+                                <input type="text" disabled name="response" >
+                            </div>
+                            <div>
+                                <label for="">Date</label>
+                                <input type="text" disabled name="date" value="">
+                            </div>
+                            <div>
+                                <label for="">Allowance</label>
+                                <input type="text" disabled name="allowance" value="">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Modal -->
+        <div class="modal fade" id="verifyResultModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Result</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="" id="verify-result-form">
+                            <div>
+                                <label for="">Commitment</label>
+                                <input type="text" disabled name="commitment" value="">
+                            </div>
+                            <div>
+                                <label for="">Slot</label>
+                                <input type="text" disabled name="slot" value="">
+                            </div>
+                            <div>
+                                <label for="">TxID</label>
+                                <input type="text" disabled name="txid" value="">
+                            </div>
+                            <div>
+                                <label for="">Bitcoin block</label>
+                                <input type="text" disabled name="bitcoin_block" value="">
+                            </div>
+                            <div>
+                                <label for="">Height</label>
+                                <input type="text" disabled name="height" value="">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <script type="text/javascript">
+        var gcbrowserkey = {{vars.gcbrowserkey|tojson }};
+        var gcid = {{ vars.gcid|tojson }};
+        var gcappid = {{ vars.gcappid|tojson }};
+        var gcfolderid = {{ vars.gcfolderid|tojson }};
+    </script>
+
+    <script src="../static/js/picker.js"></script>
+
+{% endblock %}

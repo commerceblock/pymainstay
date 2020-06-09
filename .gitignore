@@ -6,3 +6,5 @@ testdir
 *~
 .vscode
 venv
+
+.idea

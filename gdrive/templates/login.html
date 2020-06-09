@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="myContainer login-page">
+        <div class=" row">
+            <div class="col-md-6 left">
+                <h1>Attest and Verify Your Files, select your cloud storage</h1>
+                <a href="{{ url_for('authorize') }}">
+                    <div class="block">
+                        <img src="../static/img/google-icon.svg" alt="google">
+                        <div>
+                            <span class="title">Google Drive</span>
+                            <span class="desc">Sign in and authorize Mainstay access to Google Drive</span>
+                        </div>
+                    </div>
+                </a>
+                <div class="block">
+                    <img src="../static/img/dropbox-icon.svg" alt="dropbox">
+                    <div>
+
+                        <span class="title">Dropbox</span>
+                        <span class="desc">  Sign in and authorize Mainstay access to Dropbox</span>
+                    </div>
+                </div>
+                <div class="block">
+                    <img src="../static/img/onedrive-icon.svg" alt="oneDrive" style="width: 36px;">
+                    <div>
+                        <span class="title">OneDrive</span>
+                        <span class="desc"> Sign in and authorize Mainstay access to OneDrive</span>
+                    </div>
+                </div>
+
+            </div>
+            <div class=" col-md-6 right">
+                <img src="../static/img/login-rightside.svg" alt="login-rightside">
+
+                <!-- <div class="block  col-md-6">
+                    <div class="images">
+                        <img src="../static/img/authorize1.svg" alt="auth">
+                        <img src="../static/img/upload2.svg" alt="auth">
+                    </div>
+                    <div class="content">
+                        <span class="number">1.</span>
+                        <div>
+                            <span><b>Authorize MainStay.xyz</b>  with your Google Drive,  DropBox or OneDrive.</span>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block col-md-6">
+                    <div class="images">
+                        <img src="../static/img/upload1.svg" alt="upload">
+                        <img src="../static/img/upload2.svg" alt="upload">
+                    </div>
+                    <div class="content">
+                        <span class="number">2.</span>
+                        <div>
+                            <span> <b>Upload the files </b>to the newly created <b>/MainStay folder</b> in your cloud service.</span>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block  col-md-6">
+                    <div class="images">
+                        <img src="../static/img/select1.svg" alt="select">
+                        <img src="../static/img/select2.svg" alt="select">
+                    </div>
+                    <div class="content">
+                        <span class="number">3.</span>
+                        <div>
+                            <span><b>Select the files in MainStay.xyz </b>to attest them and obtain a proof. </span>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block  col-md-6">
+                    <div class="images">
+                        <img src="../static/img/share1.svg" alt="share">
+                        <img src="../static/img/share2.svg" alt="share">
+                    </div>
+                    <div class="content">
+                        <span class="number">4.</span>
+                        <div>
+                            <span><b>Share the attested files</b> with 3rd parties. Any recipient can use the MainStay.xyz service with their cloud to verify them.</span>
+
+                        </div>
+                    </div>
+                </div> -->
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
