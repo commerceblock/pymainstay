@@ -52,7 +52,7 @@ def home():
                 verification = verify()
                 flask.flash(verification, 'info')
 
-    gfiles = get_files_from_drive(drive)
+    gfiles = main_logic(drive)
 
     vars = {
         'gcid': GOOGLE_CLIENT_ID,
@@ -64,7 +64,7 @@ def home():
     return flask.render_template('index.html', gfiles=gfiles, commitment=commitment, vars=vars)
 
 
-def get_files_from_drive(drive):
+def main_logic(drive):
     mainstay_folder_id = search_mainstay_folder(drive)
     gfiles = search_mainstay_files(drive, mainstay_folder_id)
     if gfiles == "No authorized files found in folder.":
