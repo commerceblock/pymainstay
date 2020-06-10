@@ -45,7 +45,12 @@ def main_logic(credentials):
         if file['size'] != '-':
             file['size'] = round(int(file.get('size')) / (1024 * 1024), 2)
 
-        file['modifiedTime'] = datetime.datetime.strptime(file['modifiedTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        try:
+            file['modifiedTime'] = datetime.datetime.strptime(file['modifiedTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        except ValueError:
+            file['modifiedTime'] = datetime.datetime.strptime(file['modifiedTime'], '%Y-%m-%dT%H:%M:%S.%Z')
+        finally:
+            file['modifiedTime'] = None
 
     return ofiles
 
