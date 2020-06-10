@@ -27,11 +27,10 @@ a {
 
 .navbar-collapse {
   flex-direction: row-reverse;
-
   .nav-item.revoke-mobile {
     display: none;
 
-  }
+}
 
   .nav-link {
     &.colored {
@@ -922,21 +921,19 @@ section {
 .modal {
   .modal-body {
     margin-bottom: 10px;
-
     form {
       input {
-        color: #1C1C1C;
-        border: 1px solid #A9A8A7;
-        width: 100%;
-        height: calc(1.5em + .5rem + 2px);
-        padding: .25rem .5rem;
-        font-size: .875rem;
-        line-height: 1.5;
-        border-radius: .2rem;
-        margin-bottom: 10px;
+         color: #1C1C1C;
+     border: 1px solid #A9A8A7;
+    width: 100%;
+    height: calc(1.5em + .5rem + 2px);
+    padding: .25rem .5rem;
+    font-size: .875rem;
+    line-height: 1.5;
+    border-radius: .2rem;
+    margin-bottom: 10px;
 
       }
-
       label {
         display: block;
         font-size: 14px;
@@ -945,12 +942,11 @@ section {
       }
     }
   }
-
   .modal-footer {
     button {
       background-color: #3D9155;
-      border: none;
-      color: #ffffff;
+      border:none;
+       color: #ffffff;
     }
   }
 }
@@ -1079,15 +1075,14 @@ input[type=number] {
 
 @media only screen and (max-width: 991px) {
   .navbar-nav {
-    margin-top: 30px;
-    -webkit-box-shadow: 1px 10px 12px 0px #ccc;
+    margin-top:30px;
+        -webkit-box-shadow: 1px 10px 12px 0px #ccc;
     box-shadow: 1px 10px 12px 0px #ccc;
     padding: 20px;
-
     .nav-item.revoke-mobile {
-      display: block;
+    display: block;
 
-    }
+}
   }
   section .table .title-bar .button, section table.dataTable .title-bar .button {
     &.red-border {

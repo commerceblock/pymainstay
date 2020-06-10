@@ -34,8 +34,8 @@ def get_user(credentials):
     return user.json()
 
 
-def combine_hashes(string):
-    hashes_wo_space = "".join(string.split())
+def combine_hashes(hashes):
+    hashes_wo_space = "".join(hashes)
     combined = hashlib.sha256(hashes_wo_space.encode('utf-8')).hexdigest()
     return combined
 
@@ -78,7 +78,8 @@ def get_files_list(response):
         name = v['name']
         size = v['size']
         checksum = v['file']['hashes']['quickXorHash']
-        temp = {'name': name, 'checksum': checksum, 'size': size}
+        date_modified = v['fileSystemInfo']['lastModifiedDateTime']
+        temp = {'name': name, 'checksum': checksum, 'size': size, 'modifiedTime': date_modified}
         ofiles.append(temp)
 
     return ofiles
