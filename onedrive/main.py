@@ -48,7 +48,7 @@ def main_logic(credentials):
         try:
             file['modifiedTime'] = datetime.datetime.strptime(file['modifiedTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
         except ValueError:
-            file['modifiedTime'] = datetime.datetime.strptime(file['modifiedTime'], '%Y-%m-%dT%H:%M:%S.%Z')
+            file['modifiedTime'] = datetime.datetime.strptime(file['modifiedTime'], '%Y-%m-%dT%H:%M:%SZ')
         finally:
             file['modifiedTime'] = None
 
