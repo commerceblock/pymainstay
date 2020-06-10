@@ -36,7 +36,7 @@ def main_logic(credentials):
     search_mainstay_folder(credentials)
     ofiles = search_mainstay_files(credentials)
     if not ofiles:
-        ofiles.append("No files found in Mainstay folder. Please add.")
+        return []
     else:
         ofiles = OFiles(ofiles)
 
