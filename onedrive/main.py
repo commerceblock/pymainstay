@@ -12,6 +12,7 @@ from helpers import (MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET,
                      get_files_list)
 from mst.cmds import attest_command, verify_command
 
+import datetime
 
 app = flask.Flask('mainstay_onedrive')
 app.secret_key = os.getenv('APP_SECRET_KEY')
@@ -21,26 +22,13 @@ app.secret_key = os.getenv('APP_SECRET_KEY')
 def home():
     if 'credentials' not in flask.session:
         flask.flash('Please login first', 'primary')
-        return flask.render_template("home.html")
+        return flask.render_template("login.html")
 
     credentials = get_token()
     ofiles = main_logic(credentials)
     commitment = None
-    if flask.request.method == 'POST':
-        if "post_checksums" in flask.request.form:
-            if flask.request.form['checksums']:
-                commitment = checksums_operations()
-        if "attest" in flask.request.form:
-            if flask.request.form['api_token'] and flask.request.form['slot']:
-                attestation = attest()
-                flask.flash(attestation, 'info')
-        if "verify" in flask.request.form:
-            if flask.request.form['checksums_verify']:
-                commitment = checksums_operations()
-                verification = verify()
-                flask.flash(verification, 'info')
 
-    return flask.render_template('loggedin.html', ofiles=ofiles,
+    return flask.render_template('index.html', ofiles=ofiles,
                                  commitment=commitment)
 
 
@@ -48,9 +36,21 @@ def main_logic(credentials):
     search_mainstay_folder(credentials)
     ofiles = search_mainstay_files(credentials)
     if not ofiles:
-        ofiles.append("No files found in Mainstay folder. Please add.")
+        return []
     else:
         ofiles = OFiles(ofiles)
+
+    for file in ofiles.items:
+        file['extension'] = file.get('name').split('.')[-1]
+        if file['size'] != '-':
+            file['size'] = round(int(file.get('size')) / (1024 * 1024), 2)
+
+        try:
+            file['modifiedTime'] = datetime.datetime.strptime(file['modifiedTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        except ValueError:
+            file['modifiedTime'] = datetime.datetime.strptime(file['modifiedTime'], '%Y-%m-%dT%H:%M:%SZ')
+        finally:
+            file['modifiedTime'] = None
 
     return ofiles
 
@@ -82,7 +82,7 @@ def create_mainstay_folder(credentials):
     headers = {'Content-Type': 'application/json'}
     file_metadata = {
         'name': 'Mainstay',
-        'folder': { },
+        'folder': {},
         '@microsoft.graph.conflictBehavior': 'fail'
     }
 
@@ -101,6 +101,16 @@ def search_mainstay_files(credentials):
     ofiles = get_files_list(response)
 
     return ofiles
+
+
+@app.route('/get_commitment', methods=['POST'])
+def get_commitment():
+    try:
+        posted_checksums = flask.request.get_json().get('checksums')
+        processed_checksums = combine_hashes(posted_checksums)
+        return processed_checksums
+    except:
+        return Response()
 
 
 def checksums_operations():
@@ -167,7 +177,7 @@ def store_user(credentials):
         'is_authenticated': True,
         'name': user['displayName'],
         'email': user['mail'] if (user['mail'] is not None)
-                              else user['userPrincipalName']
+        else user['userPrincipalName']
     }
 
 
@@ -201,7 +211,7 @@ def clear_credentials():
     else:
         flask.flash('Please login first', 'primary')
 
-    return flask.render_template("home.html")
+    return flask.render_template("login.html")
 
 
 @app.route('/about')
@@ -214,23 +224,32 @@ def attest():
     args = Record()
     args.service_url = 'https://mainstay.xyz'
     args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
+
+    data = flask.request.get_json()
     try:
-        args.slot = flask.request.form['slot']
-        args.api_token = flask.request.form['api_token']
-        if not flask.request.form['commitment']:
+        args.slot = data.get('slotNumber')
+        args.api_token = data.get('apiKey')
+        if not data.get('commitment'):
             flask.flash('Please input commitment', 'warning')
             args.commitment = "None"
         else:
-            args.commitment = flask.request.form['commitment']
+            args.commitment = data.get('commitment')
     except KeyError as ke:
-        if ke:
-            flask.flash('Request could not be satisfied', 'dark')
-
-    result = attest_command(args)
-    if result is False:
         flask.flash('Request could not be satisfied', 'dark')
 
-    return json.dumps(result)
+    result = attest_command(args)
+
+    response_data = {}
+
+    if result:
+        response_data['response'] = result.get('response')
+        response_data['date'] = datetime.datetime.fromtimestamp(result.get('timestamp') / 1000)
+        response_data['allowance'] = f"Cost: {result.get('allowance').get('cost')}"
+
+    if result == False:
+        flask.flash('Request could not be satisfied', 'dark')
+
+    return response_data
 
 
 @app.route('/verify', methods=['POST'])
@@ -238,19 +257,32 @@ def verify():
     args = Record()
     args.service_url = 'https://mainstay.xyz'
     args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
+
+    data = flask.request.get_json()
+
+    slot_number = data.get('slotNumber')
     try:
-        if not flask.request.form['slot']:
-            args.slot = -1
-        else:
-            args.slot = int(flask.request.form['slot'])
-            args.api_token = flask.request.form['api_token']
-            args.commitment = flask.request.form['checksums_verify']
-    except KeyError as ke:
-        if ke:
-            flask.flash('Request could not be satisfied', 'dark')
+        args.slot = int(slot_number) if slot_number else -1
+    except:
+        return json.dumps({"Error": "Please input right slot number"})
+
+    args.commitment = data.get('commitment')
+
+    response_data = {}
 
     result = verify_command(args)
-    return json.dumps(result)
+
+    if result:
+        response_data['commitment'] = args.commitment
+        response_data['slot'] = args.slot
+        response_data['txid'] = result[1].split()[8]
+        response_data['bitcoin_block'] = result[2].split()[3]
+        response_data['height'] = result[2].split()[5]
+        return json.dumps(response_data)
+    else:
+        response_data['commitment'] = "Unknown"
+
+    return response_data
 
 
 if __name__ == '__main__':
