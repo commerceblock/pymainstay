@@ -285,5 +285,13 @@ def verify():
     return response_data
 
 
+@app.route('/.well-known/microsoft-identity-association.json', methods=['GET'])
+def well_known():
+    SITE_ROOT = os.path.realpath(os.path.dirname(__file__))
+    json_url = os.path.join(SITE_ROOT, ".well-known", "microsoft-identity-association.json")
+    data = json.load(open(json_url))
+    return data
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', ssl_context='adhoc', debug=False)
