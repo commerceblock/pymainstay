@@ -180,4 +180,4 @@ def get_token():
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', ssl_context='adhoc', debug=True)
+    app.run(host='0.0.0.0', ssl_context='adhoc', debug=False)
