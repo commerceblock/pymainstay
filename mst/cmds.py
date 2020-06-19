@@ -60,7 +60,7 @@ def dropbox_checksum(filename):
 def md5_checksum(filename):
     with open(filename, 'rb') as f:
         h = hashlib.md5()
-        while chunk := f.read(4096):
+        for chunk in iter(lambda: f.read(4096), b''): 
             h.update(chunk)
             md5sum = h.hexdigest()
     return hashlib.sha256(md5sum.encode('utf-8')).hexdigest()
@@ -226,6 +226,11 @@ def attest_command(args):
 
     settings = get_settings(args)
 
+    if args.addition:
+        addition = True
+    else:
+        addition = False
+
     if args.dropbox_checksum:
         proof_checksum = dropbox_checksum
     else:
@@ -363,8 +368,12 @@ def attest_command(args):
         sig_string = ""
 
     data = {"X-MAINSTAY-PAYLOAD":payload_enc,"X-MAINSTAY-SIGNATURE":sig_string}
+    if addition:
+        api_path = '/api/v1/commitment/add'
+    else:
+        api_path = '/api/v1/commitment/send'
     try:
-        response = requests.post(args.service_url+'/api/v1/commitment/send', headers=headers, data=json.dumps(data))
+        response = requests.post(args.service_url+api_path, headers=headers, data=json.dumps(data))
         rdata = response.json()
     except Exception as error:
         logging.error("ERROR: could not send request")

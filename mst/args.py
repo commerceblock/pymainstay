@@ -55,6 +55,11 @@ def parse_msc_args(raw_args):
                               default=False,
                               help="Use md5 hashing algorithm instead of sha256.")
 
+    parser_attest.add_argument("-a", "--add",
+                              dest='addition',
+                              default=False,
+                              help="Commit value to Mainstay addition API")    
+
     parser_attest.add_argument("-s", "--slot", type=int, default=0,
                               dest='slot',
                               help="Specify the slot position index.")
