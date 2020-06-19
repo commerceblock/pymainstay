@@ -247,10 +247,12 @@ def credentials_to_dict(credentials):
 @app.route('/attest', methods=['POST'])
 def attest():
     args = Record()
+    args.addition = 1
     args.service_url = 'https://mainstay.xyz'
     args.bitcoin_node = 'https://api.blockcypher.com/v1/btc/main/txs/'
 
     data = flask.request.get_json()
+    print(data)
     try:
         args.slot = data.get('slotNumber')
         args.api_token = data.get('apiKey')
