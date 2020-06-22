@@ -274,12 +274,16 @@ def verify():
     result = verify_command(args)
 
     if result:
-        response_data['commitment'] = args.commitment
-        response_data['slot'] = args.slot
-        response_data['txid'] = result[1].split()[8]
-        response_data['bitcoin_block'] = result[2].split()[3]
-        response_data['height'] = result[2].split()[5]
-        return json.dumps(response_data)
+        if ('confirmed' in result and not result.get('confirmed')) or not result[0]:
+            response_data['commitment'] = 'Not confirmed'
+        else:
+            response_data['commitment'] = args.commitment
+            response_data['slot'] = args.slot
+            response_data['txid'] = result[1].split()[8]
+            response_data['bitcoin_block'] = result[2].split()[3]
+            response_data['height'] = result[2].split()[5]
+            response_data['date'] = str(datetime.datetime.strptime(result[2].split()[7], '%Y-%m-%dT%H:%M:%SZ'))
+        return response_data
     else:
         response_data['commitment'] = "Unknown"
 
