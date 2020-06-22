@@ -608,17 +608,23 @@ def verify_command(args):
             logging.info("Retrieving slot proof from "+args.service_url)
             rstring = "/api/v1/commitment/commitment?commitment="+args.commitment
             sproof = get_mainstay_api(args.service_url,rstring)
-            if 'response' not in sproof: return False
+            if 'response' not in sproof: 
+                print("Status: "+sproof["error"])
+                return False, sproof["error"]
             addproof = {"txid":sproof["response"]["attestation"]["txid"],
                         "commitment":sproof["response"]["merkleproof"]["commitment"],
                         "merkle_root":sproof["response"]["merkleproof"]["merkle_root"],
                         "ops":sproof["response"]["merkleproof"]["ops"],
                         "date":sproof["response"]["attestation"]["inserted_at"]}
-        ver,_ = verify_commitment(slot,addproof,bitcoin_node)
-        ver_com = "Verified commitment "+ver[0]+" in slot "+str(slot)+" in TxID "+ver[1]
-        ver_block = "In Bitcoin block "+ver[2]+" height "+ver[3]+" at "+ver[4]
-        logging.info(ver_com+"\n"+ver_block)
-        return True, ver_com, ver_block
+            if sproof["response"]["attestation"]["confirmed"]:
+                ver,_ = verify_commitment(slot,addproof,bitcoin_node)
+                ver_com = "Verified commitment "+ver[0]+" in slot "+str(slot)+" in TxID "+ver[1]
+                ver_block = "In Bitcoin block "+ver[2]+" height "+ver[3]+" at "+ver[4]
+                logging.info(ver_com+"\n"+ver_block)
+                return True, ver_com, ver_block
+            else:
+                print("Status: Awaiting Confirmation")
+                return False, "Awaiting Confirmation"
 
     if args.unspent:
         if len(args.unspent) != 64:
