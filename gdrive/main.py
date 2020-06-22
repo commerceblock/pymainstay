@@ -10,11 +10,10 @@ import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import datetime
 import maya
-from pathlib import Path
 
 from flask import Response
 
-from mst.cmds import attest_command, verify_command, info_command, fetch_command
+from mst.cmds import attest_command, verify_command
 from helpers import *
 
 app = flask.Flask('mainstay_gdrive')
@@ -299,9 +298,7 @@ def verify():
     result = verify_command(args)
 
     if result:
-        if 'error' in result and result.get('error') == 'your merkle root is unknown to us':
-            response_data['commitment'] = "Make it Unknown"
-        elif 'confirmed' in result and not result.get('confirmed'):
+        if ('confirmed' in result and not result.get('confirmed')) or not result[0]:
             response_data['commitment'] = 'Not confirmed'
         else:
             response_data['commitment'] = args.commitment
@@ -309,7 +306,8 @@ def verify():
             response_data['txid'] = result[1].split()[8]
             response_data['bitcoin_block'] = result[2].split()[3]
             response_data['height'] = result[2].split()[5]
-        return json.dumps(response_data)
+            response_data['date'] = str(datetime.datetime.strptime(result[2].split()[7], '%Y-%m-%dT%H:%M:%SZ'))
+        return response_data
     else:
         response_data['commitment'] = "Unknown"
 

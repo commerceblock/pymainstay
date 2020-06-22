@@ -201,6 +201,7 @@ $(document).ready(function () {
                 $('#verify-result-form input[name="txid"]').attr("value", data.txid);
                 $('#verify-result-form input[name="bitcoin_block"]').attr("value", data.bitcoin_block);
                 $('#verify-result-form input[name="height"]').attr("value", data.height);
+                $('#verify-result-form input[name="date"]').attr("value", data.date);
             }
         });
     });
