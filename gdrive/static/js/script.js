@@ -161,6 +161,10 @@ $(document).ready(function () {
         }
     });
 
+    $('#attestResultModal').on('hidden.bs.modal', function () {
+        $('#attest-result-form').find("input[type=text]").attr('value', '');
+    });
+
     $("#attest_form").submit(function (e) {
         e.preventDefault();
 
@@ -182,6 +186,9 @@ $(document).ready(function () {
         });
     });
 
+    $('#verifyResultModal').on('hidden.bs.modal', function () {
+        $('#verify-result-form').find("input[type=text]").attr('value', '');
+    });
 
     $("#verify_form").submit(function (e) {
         e.preventDefault();
