@@ -161,6 +161,11 @@ $(document).ready(function () {
         }
     });
 
+
+    $('#attestResultModal').on('hidden.bs.modal', function () {
+        $('#attest-result-form').find("input[type=text]").attr('value', '');
+    });
+
     $("#attest_form").submit(function (e) {
         e.preventDefault();
 
@@ -182,6 +187,9 @@ $(document).ready(function () {
         });
     });
 
+    $('#verifyResultModal').on('hidden.bs.modal', function () {
+        $('#verify-result-form').find("input[type=text]").attr('value', '');
+    });
 
     $("#verify_form").submit(function (e) {
         e.preventDefault();
@@ -201,6 +209,8 @@ $(document).ready(function () {
                 $('#verify-result-form input[name="txid"]').attr("value", data.txid);
                 $('#verify-result-form input[name="bitcoin_block"]').attr("value", data.bitcoin_block);
                 $('#verify-result-form input[name="height"]').attr("value", data.height);
+                $('#verify-result-form input[name="date"]').attr("value", data.date);
+
             }
         });
     });
