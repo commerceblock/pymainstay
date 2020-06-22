@@ -137,7 +137,7 @@ def verify():
 
     if result:
         if ('confirmed' in result and not result.get('confirmed')) or not result[0]:
-            response_data['commitment'] = 'Not confirmed'
+            response_data['commitment'] = str(result[1])
         else:
             response_data['commitment'] = args.commitment
             response_data['slot'] = args.slot
