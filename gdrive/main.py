@@ -314,5 +314,11 @@ def verify():
     return response_data
 
 
+@app.errorhandler(404)
+@app.errorhandler(500)
+def page_not_found(e):
+    return flask.redirect("/", code=302)
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', ssl_context='adhoc', debug=False)
