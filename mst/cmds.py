@@ -20,7 +20,7 @@ import git
 from binascii import hexlify
 import mst
 import mst.rpchost as rpc
-from mst.verify import verify_commitment, verify_unspent
+from mst.verify import verify_commitment, verify_unspent, verify_addition_proof
 from mst.ecc import key_gen, ECPrivkey, Hash
 
 
@@ -199,6 +199,8 @@ def update_proofseq(service_url,seq,slot,txid):
                                 "ops":sproof["ops"],
                                 "date":sproof["date"],
                                 "height":'0'}
+                    if "additions" in sproof:
+                        addproof["additions"] = sproof["additions"]
                     if sproof["confirmed"]:
                         seq.insert(ip,addproof)
                         ip = ip + 1
@@ -609,7 +611,7 @@ def verify_command(args):
             rstring = "/api/v1/commitment/commitment?commitment="+args.commitment
             sproof = get_mainstay_api(args.service_url,rstring)
             if 'response' not in sproof: 
-                print("Status: "+sproof["error"])
+                logging.info("Status: "+sproof["error"])
                 return False, sproof["error"]
             addproof = {"txid":sproof["response"]["attestation"]["txid"],
                         "commitment":sproof["response"]["merkleproof"]["commitment"],
@@ -620,10 +622,18 @@ def verify_command(args):
                 ver,_ = verify_commitment(slot,addproof,bitcoin_node)
                 ver_com = "Verified commitment "+ver[0]+" in slot "+str(slot)+" in TxID "+ver[1]
                 ver_block = "In Bitcoin block "+ver[2]+" height "+ver[3]+" at "+ver[4]
+                if args.commitment != ver[0]:
+                    try:
+                        if verify_addition_proof(sproof["response"]["addproof"],sproof["response"]["merkleproof"]["commitment"]):
+                            logging.info("Verified addition "+sproof["response"]["addproof"]["addition"]+" in commitment")
+                        else:
+                            logging.info("ERROR: Not verified addition "+sproof["addproof"]["addition"]+" in commitment")
+                    except:
+                       logging.error("ERROR: Commitment addition verification failure") 
                 logging.info(ver_com+"\n"+ver_block)
                 return True, ver_com, ver_block
             else:
-                print("Status: Awaiting Confirmation")
+                logging.info("Status: Awaiting Confirmation")
                 return False, "Awaiting Confirmation"
 
     if args.unspent:

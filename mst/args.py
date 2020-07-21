@@ -48,7 +48,7 @@ def parse_msc_args(raw_args):
                               dest='dropbox_checksum',
                               default=False,
                               action='count',
-                              help="Use 'Dropbox' hashing algorithm instead of sha256.")
+                              help="Use Dropbox SHA256 hashing algorithm.")
 
     attest_group.add_argument("--md5-checksum",
                               dest='md5_checksum',
@@ -129,8 +129,12 @@ def parse_msc_args(raw_args):
     verify_group  = parser_verify.add_mutually_exclusive_group()
 
     verify_group.add_argument('-f', '--file', type=str,
-                              dest='filename',
-                              help="Verify the given sequence proof in the supplied file.")
+                              dest='file',
+                              help="Verify the commitment of the checksum of the specified file.")
+
+    verify_group.add_argument('-r', '--read', type=str,
+                              dest='read',
+                              help="Verify the sequence proof in the supplied file.")
 
     verify_group.add_argument("-c","--commit", type=str,
                               dest='commitment',
@@ -140,17 +144,17 @@ def parse_msc_args(raw_args):
                               dest='proof',
                               help="Verify the given sequence proof (as a JSON object). If 0, a stored proof is verified.")
 
-    verify_group.add_argument("-u","--unspent", type=str,
+    parser_verify.add_argument("-u","--unspent", type=str,
                               dest='unspent',
                               help="Verify the given file or commitment is attested to the unspent staychain tip.")
 
-    verify_group.add_argument("--dropbox-checksum",
+    parser_verify.add_argument("--dropbox-checksum",
                               dest='dropbox_checksum',
                               default=False,
                               action='count',
                               help="Use 'Dropbox' hashing algorithm instead of sha256.")
 
-    verify_group.add_argument("--md5-checksum",
+    parser_verify.add_argument("--md5-checksum",
                               dest='md5_checksum',
                               default=False,
                               help="Use md5 hashing algorithm instead of sha256.")
@@ -185,6 +189,10 @@ def parse_msc_args(raw_args):
     list_group.add_argument("-d","--dir", type=str,
                               dest='directory',
                               help="Verify the sequence proof against the time ordered files in the specified directory (path).")
+
+    list_group.add_argument("-a","--add", type=str,
+                              dest='additions',
+                              help="Verify the sequence proof against the files in the specified directory as additions (path).")
 
     # Sync with sidechain
     parser_sync = subparsers.add_parser('sync', aliases=['s'],

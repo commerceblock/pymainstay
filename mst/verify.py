@@ -171,6 +171,26 @@ def verify_slot_proof(slot, proof):
         logging.error('ERROR: commitment '+commitment+' slot-proof verification failure')
         sys.exit(1)
 
+def verify_addition_proof(path,commitment):
+    #verify the Merkle path of the addition proof
+    try:
+        merkle_root = commitment
+        commitment = path["addition"]
+        ops = path['ops']
+        order = []
+        for bl in path['ops']:
+            order.append(not bl['append'])
+        position = sum(v<<i for i, v in enumerate(order))
+    except:
+        logging.error('ERROR: addition path proof malformation')
+        sys.exit(1)
+    calculated_proof_root = hash_merkle_root([pth['commitment'] for pth in ops], commitment, position)
+    if calculated_proof_root == merkle_root:
+        return True
+    else:
+        logging.error('ERROR: commitment '+commitment+' addition proof path verification failure')
+        sys.exit(1)
+
 def verify_commitment(slot,sproof,bitcoin_node):
     #verify single commitment against the bitcoin blockchain
     pv = verify_slot_proof(slot,sproof)
