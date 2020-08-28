@@ -128,17 +128,9 @@ def parse_msc_args(raw_args):
 
     verify_group  = parser_verify.add_mutually_exclusive_group()
 
-    verify_group.add_argument('-f', '--file', type=str,
-                              dest='file',
-                              help="Verify the commitment of the checksum of the specified file.")
-
     verify_group.add_argument('-r', '--read', type=str,
                               dest='read',
                               help="Verify the sequence proof in the supplied file.")
-
-    verify_group.add_argument("-c","--commit", type=str,
-                              dest='commitment',
-                              help="Verify the attestation of a given commitment hex and return block details")
 
     verify_group.add_argument("-p","--proof", type=str,
                               dest='proof',
@@ -177,6 +169,14 @@ def parse_msc_args(raw_args):
                               help="Verify that the proof sequence is committed to the staychain containing TxID")
 
     list_group  = parser_verify.add_mutually_exclusive_group()
+
+    list_group.add_argument("-c","--commit", type=str,
+                              dest='commitment',
+                              help="Verify the attestation of a given commitment hex and return block details")
+
+    list_group.add_argument('-f', '--file', type=str,
+                              dest='file',
+                              help="Verify the commitment of the checksum of the specified file.")
 
     list_group.add_argument("-l","--list", type=str,
                               dest='list',

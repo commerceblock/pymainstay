@@ -198,7 +198,9 @@ def update_proofseq(service_url,seq,slot,txid):
                                 "merkle_root":sproof["merkle_root"],
                                 "ops":sproof["ops"],
                                 "date":sproof["date"],
-                                "height":'0'}
+                                "height":'0',
+                                "block": '',
+                                "time": ''}
                     if "additions" in sproof:
                         addproof["additions"] = sproof["additions"]
                     if sproof["confirmed"]:
@@ -235,8 +237,13 @@ def attest_command(args):
 
     if args.dropbox_checksum:
         proof_checksum = dropbox_checksum
+        message = "Dropbox SHA256 hash"
+    elif args.md5_checksum:
+        proof_checksum = md5_checksum
+        message = "SHA256 derived from MD5 hash"
     else:
         proof_checksum = sha256sum
+        message = "SHA256"
 
     if args.slot:
         slot = str(args.slot)
@@ -274,15 +281,8 @@ def attest_command(args):
             return False
         commitment = args.commitment
 
-    if args.filename or args.md5_checksum:
-        if args.filename:
-            arg = args.filename
-            message = "SHA256"
-            proof_checksum = sha256sum
-        if args.md5_checksum:
-            arg = args.md5_checksum
-            message = "SHA256 derived from MD5 hash"
-            proof_checksum = md5_checksum
+    if args.filename:
+        arg = args.filename
         if arg[0] == '/':
             filename = arg
         else:
@@ -567,10 +567,13 @@ def verify_command(args):
 
     if args.dropbox_checksum:
         proof_checksum = dropbox_checksum
+        message = "Dropbox SHA256 hash"
     elif args.md5_checksum:
         proof_checksum = md5_checksum
+        message = "SHA256 derived from MD5 hash"
     else:
         proof_checksum = sha256sum
+        message = "SHA256"
 
     if args.bitcoin_node:
         bitcoin_node = args.bitcoin_node
@@ -605,36 +608,74 @@ def verify_command(args):
         if not is_hex(args.commitment):
             logging.error("Invalid commitment string: not hex")
             return False
-        addproof = get_proof_from_commit(slot,args.commitment)
-        if not addproof:
-            logging.info("Retrieving slot proof from "+args.service_url)
-            rstring = "/api/v1/commitment/commitment?commitment="+args.commitment
-            sproof = get_mainstay_api(args.service_url,rstring)
-            if 'response' not in sproof: 
-                logging.info("Status: "+sproof["error"])
-                return False, sproof["error"]
-            addproof = {"txid":sproof["response"]["attestation"]["txid"],
-                        "commitment":sproof["response"]["merkleproof"]["commitment"],
-                        "merkle_root":sproof["response"]["merkleproof"]["merkle_root"],
-                        "ops":sproof["response"]["merkleproof"]["ops"],
-                        "date":sproof["response"]["attestation"]["inserted_at"]}
-            if sproof["response"]["attestation"]["confirmed"]:
-                ver,_ = verify_commitment(slot,addproof,bitcoin_node)
-                ver_com = "Verified commitment "+ver[0]+" in slot "+str(slot)+" in TxID "+ver[1]
-                ver_block = "In Bitcoin block "+ver[2]+" height "+ver[3]+" at "+ver[4]
-                if args.commitment != ver[0]:
-                    try:
-                        if verify_addition_proof(sproof["response"]["addproof"],sproof["response"]["merkleproof"]["commitment"]):
-                            logging.info("Verified addition "+sproof["response"]["addproof"]["addition"]+" in commitment")
-                        else:
-                            logging.info("ERROR: Not verified addition "+sproof["addproof"]["addition"]+" in commitment")
-                    except:
-                       logging.error("ERROR: Commitment addition verification failure") 
-                logging.info(ver_com+"\n"+ver_block)
-                return True, ver_com, ver_block
-            else:
-                logging.info("Status: Awaiting Confirmation")
-                return False, "Awaiting Confirmation"
+        logging.info("Retrieving slot proof from "+args.service_url)
+        rstring = "/api/v1/commitment/commitment?commitment="+args.commitment
+        sproof = get_mainstay_api(args.service_url,rstring)
+        if 'response' not in sproof: 
+            logging.info("Status: "+sproof["error"])
+            return False, sproof["error"]
+        addproof = {"txid":sproof["response"]["attestation"]["txid"],
+                    "commitment":sproof["response"]["merkleproof"]["commitment"],
+                    "merkle_root":sproof["response"]["merkleproof"]["merkle_root"],
+                    "ops":sproof["response"]["merkleproof"]["ops"],
+                    "date":sproof["response"]["attestation"]["inserted_at"]}
+        if sproof["response"]["attestation"]["confirmed"]:
+            ver,_ = verify_commitment(slot,addproof,bitcoin_node)
+            ver_com = "Verified commitment "+ver[0]+" in slot "+str(slot)+" in TxID "+ver[1]
+            ver_block = "In Bitcoin block "+ver[2]+" height "+ver[3]+" at "+ver[4]
+            if args.commitment != ver[0]:
+                try:
+                    if verify_addition_proof(sproof["response"]["addproof"],sproof["response"]["merkleproof"]["commitment"]):
+                        logging.info("Verified addition "+sproof["response"]["addproof"]["addition"]+" in commitment")
+                    else:
+                        logging.info("ERROR: Not verified addition "+sproof["addproof"]["addition"]+" in commitment")
+                except:
+                   logging.error("ERROR: Commitment addition verification failure") 
+            logging.info(ver_com+"\n"+ver_block)
+            return True, ver_com, ver_block
+        else:
+            logging.info("Status: Awaiting Confirmation")
+            return False, "Awaiting Confirmation"
+
+    if args.file:
+        arg = args.filename
+        if arg[0] == '/':
+            filename = arg
+        else:
+            filename = os.getcwd() + '/' + arg
+        try:
+            commitment = proof_checksum(filename)
+        except:
+            logging.error("ERROR: could not open specified file")
+            return False
+        logging.info("Retrieving slot proof from "+args.service_url)
+        rstring = "/api/v1/commitment/commitment?commitment="+args.commitment
+        sproof = get_mainstay_api(args.service_url,rstring)
+        if 'response' not in sproof: 
+            logging.info("Status: "+sproof["error"])
+            return False, sproof["error"]
+        addproof = {"txid":sproof["response"]["attestation"]["txid"],
+                    "commitment":sproof["response"]["merkleproof"]["commitment"],
+                    "merkle_root":sproof["response"]["merkleproof"]["merkle_root"],
+                    "ops":sproof["response"]["merkleproof"]["ops"],
+                    "date":sproof["response"]["attestation"]["inserted_at"]}
+        if sproof["response"]["attestation"]["confirmed"]:
+            ver,_ = verify_commitment(slot,addproof,bitcoin_node)
+            ver_com = "Verified commitment "+ver[0]+" in slot "+str(slot)+" in TxID "+ver[1]
+            ver_block = "In Bitcoin block "+ver[2]+" height "+ver[3]+" at "+ver[4]
+            if args.commitment != ver[0]:
+                try:
+                    if verify_addition_proof(sproof["response"]["addproof"],sproof["response"]["merkleproof"]["commitment"]):
+                        logging.info("Verified addition "+sproof["response"]["addproof"]["addition"]+" in commitment")
+                    else:
+                        logging.info("ERROR: Not verified addition "+sproof["addproof"]["addition"]+" in commitment")
+                except:
+                   logging.error("ERROR: Commitment addition verification failure") 
+            logging.info(ver_com+"\n"+ver_block)
+            return True, ver_com, ver_block
+        else:
+            logging.info("Status: Awaiting Confirmation")
+            return False, "Awaiting Confirmation"
 
     if args.unspent:
         if len(args.unspent) != 64:
@@ -669,8 +710,8 @@ def verify_command(args):
             logging.info(ver_com+"\n"+ver_block)
             return False
 
-    if args.filename:
-        seq = readfromfile(args.filename)
+    if args.read:
+        seq = readfromfile(args.file)
     elif args.proof:
         if args.proof == '0':
             seq = load_proofseq(slot)
@@ -793,9 +834,7 @@ def verify_command(args):
         except:
             logging.error("ERROR: Invalid directory path.")
             return False
-
         filelist.sort()
-
         if dir_path[-1] != '/':
             dir_path += '/'
         time = 0
@@ -850,6 +889,52 @@ def verify_command(args):
             logging.warning("Last file attested: "+fmatch[0])
         return True
 
+    if args.additions:
+        if args.directory == '0':
+            try:
+                dir_path = str(settings["directory"])
+            except:
+                logging.error("Missing directory path in config and argument")
+                return False
+        else:
+            dir_path = args.additions
+        try:
+            filelist = os.listdir(dir_path)
+        except:
+            logging.error("ERROR: Invalid directory path.")
+            return False
+        logging.info("Directory: "+dir_path+" contains "+str(len(filelist))+ "files")
+        if dir_path[-1] != '/':
+            dir_path += '/'
+        #create list of hashes
+        filehl = {}
+        for file in filelist:
+            filehl[file] = proof_checksum(dir_path+file)
+
+        #search sequence for file hashes
+        addedc = []
+        addedf = []
+        oads = []
+        for sproof in seq:
+            # zero commits are null and skipped
+            if sproof["commitment"] == '0'*64: continue
+            ads = sproof["additions"]
+            for ad in ads:
+                if ad not in addedc:
+                    try:
+                        filename = filehl[ad]
+                        addedc.append(ad)
+                        addedf.append(filename)
+                        logging.info("File "+filename+" committed in block "+sproof["block"]+" "+sproof["date"])
+                    except:
+                        logging.info("WARNING: No file for commitment "+ad+" in block "+sproof["block"])
+        logging.info(" ")
+        for file in filelist:
+            if file not in addedf:
+                logging.info("WARNING: File "+file+" not committed to slot")
+        return True
+
+
     verout = []
     nseq = []
     txin = None
@@ -867,9 +952,14 @@ def verify_command(args):
         verout.append(ver)
         logging.debug("Verified commitment "+ver[0]+" in slot "+str(slot)+" in TxID "+ver[1])
         logging.debug("In Bitcoin block "+ver[2]+" height "+ver[3]+" at "+ver[4])
+        sproof["block"] = ver[2]
         sproof["height"] = ver[3]
+        sproof["time"] = ver[4]
         nseq.append(sproof)
         schain.append(sproof["txid"])
+
+        #TODO:
+        #verify addition commitment paths to the slot commitment
 
     if args.proof:
         if args.proof == '0':
