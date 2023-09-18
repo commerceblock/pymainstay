@@ -43,6 +43,7 @@ The Mainstay client interface (`msc`) can be used to fetch and verify proof sequ
 	  Mainstay operations are performed via commands:
 
 	  {attest,a,fetch,f,verify,v,sync,s,config,c,keygen,k,info,i}
+            subscribe (b)       Create, renew and manage a Mainstay slot
 	    attest (a)          Commit data to a Mainstay slot
 	    fetch (f)           Fetch proofs from the Mainstay service
 	    verify (v)          Verify Mainstay proofs against the Bitcoin blockchain
@@ -86,6 +87,53 @@ The client can be used in a stateless fashion, with all configuration supplied v
 	$ msc config
 
 All configuration is set via the same command. For connection to a particular slot, the slot position (`-s`), the API token (`-t`) and the authentication key (`-k`) can be set initially, so they do not have to be specified as arguments for each subsequent call. 
+
+### Subscription
+
+The client can be used to manage a slot subscription and pay via the lightning network. 
+
+To get subscription rates:
+
+	$ msc subscribe -r
+
+ 	Rate: 0.0001 BTC per month
+  
+To initiate a payment and generate a token to either create or renew a commitment slot (with value 0.001):
+
+	$ msc subscribe -p 0.001
+
+ 	Token ID: e2259b7c-d279-4b28-a085-2a0bbf4cff45
+  	Invoice: lnbc15u1p3xnhl2pp5jptserfk3zk4qy42tlucycrfwxhydvlemu9pqr93tuzlv9cc7g3sdqsvfhkcap3xyhx7un8cqzpgxqzjcsp5f8c52y2stc300gl6s4xswtjpc37hrnnr3c9wvtgjfuvqmpm35evq9qyyssqy4lgd8tj637qcjp05rdpxxykjenthxftej7a2zzmwrmrl70fyj9hvj0rewhzj7jfyuwkwcg9g2jpwtk3wkjtwnkdks84hsnu8xps5vsq4gj5hs
+
+Once payment is made using the invoice, to verify: 
+
+	$ msc subscribe -v e2259b7c-d279-4b28-a085-2a0bbf4cff45
+
+ 	Amount: 0.001
+  	Verified: true
+
+To then create a new slot:
+
+	$ msc subscribe -c e2259b7c-d279-4b28-a085-2a0bbf4cff45
+
+ 	Slot: 451
+  	Expiry: 23-December-2023
+
+To then extend the expiry of an existing slot:
+
+	$ msc subscribe -c e2259b7c-d279-4b28-a085-2a0bbf4cff45 -s 451
+
+ 	Slot: 451
+  	Expiry: 23-January-2024
+
+To query the expiry date of an existing slot:
+
+	$ msc subscribe -s 451
+
+ 	Slot: 451
+  	Expiry: 23-January-2024
+
+The api token will then be saved with the slot ID in the config. 
 
 ### Attestation
 
