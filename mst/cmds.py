@@ -155,7 +155,7 @@ def readfromfile(filename):
 
 def get_mainstay_api(url,rstring):
     try:
-        r = requests.request('GET', url+rstring, timeout=2)
+        r = requests.request('GET', url+rstring, timeout=3)
         r.raise_for_status()
         proof = r.json()
         return proof
@@ -222,7 +222,15 @@ def update_proofseq(service_url,seq,slot,txid):
         return seq
     else:
         logging.error("ERROR: pages updated during retrieval - please re-run fetch.")
-        sys.exit(1)     
+        sys.exit(1)
+
+def millisats_to_btc(millisats):
+    btc = int(millisats) / 10**11 
+    formatted_btc = "{:.8f}".format(btc).rstrip('0').rstrip('.')
+    return formatted_btc
+
+def btc_to_millisats(btc):
+    return float(btc) * 10**11    
 
 def attest_command(args):
 
@@ -1137,3 +1145,49 @@ def info_command(args):
         save_settings(settings)
 
     return sproof["response"]["txid"]
+
+def subscribe_command(args):
+
+    settings = get_settings(args)
+
+    if args.rate:
+        rstring = "/api/v1/feerate"
+        sproof = get_mainstay_api(args.service_url,rstring)
+        millisats = sproof["response"]["fee_rate"]
+        logging.info("Rate: " + str(millisats_to_btc(millisats)) + " BTC per month")
+    
+    if args.payment:
+        rstring = "/api/v1/token/init?value="+str(btc_to_millisats(args.payment))
+        sproof = get_mainstay_api(args.service_url,rstring)
+        logging.info("Token ID: " + sproof["response"]["token_id"])
+        logging.info("Invoice: " + sproof["response"]["lightning_invoice"]["bolt11"])
+
+    if args.verify:
+        rstring = "/api/v1/token/verify?token_id="+str(args.verify)
+        sproof = get_mainstay_api(args.service_url,rstring)
+        logging.info("Amount: " + str(sproof["response"]["amount"]))
+        logging.info("Verified: " + str(sproof["response"]["confirmed"]))
+
+    if args.create:
+        if args.slot:
+            slot = args.slot
+        else:
+            slot = 0
+        data = {"token_id":args.create,"slot_id":str(slot)}
+        api_path = '/api/v1/spendtoken'
+        response = requests.post(args.service_url+api_path, data=json.dumps(data))
+        rdata = response.json()
+        logging.info("Slot: " + str(rdata["response"]["slot_id"]))
+        logging.info("Expiry: " + str(rdata["response"]["expiry_date"]))
+        settings["api_token"] = args.create
+        settings["slot"] = slot
+        save_settings(settings)
+        return
+    
+    if args.slot:
+        rstring = "/api/v1/slotexpiry?slot_id="+str(args.slot)
+        sproof = get_mainstay_api(args.service_url,rstring)
+        logging.info("Slot: " + args.slot)
+        logging.info("Expiry: " + str(sproof["response"]["expiry_date"]))
+
+    return

@@ -293,6 +293,38 @@ def parse_msc_args(raw_args):
                               dest='config',
                               help="Set the staychain base TxID in the config.")
 
+    # subscribe to slot
+    parser_subscribe = subparsers.add_parser('subscribe', aliases=['sub'],
+                              help='Subscribe to Mainstay slot')
+    
+    subscribe_group = parser_subscribe.add_mutually_exclusive_group()
+
+    subscribe_group.add_argument("-c","--create", type=str,
+                                dest='create',
+                                help="To create a new slot")
+
+    parser_subscribe.add_argument("-r", "--rate",
+                                    dest='rate',
+                                    action='store_true',
+                                    help="Get subscription rate")
+    
+    parser_subscribe.add_argument("-p", "--payment",
+                                    dest='payment',
+                                    help="Initiate a payment and generate a token to either create or renew a commitment slot")
+
+    parser_subscribe.add_argument("-v", "--verify",
+                                    dest='verify',
+                                    help="Verify payment made using lightning invoice")
+
+    parser_subscribe.add_argument("-s", "--slot",
+                                    dest='slot',
+                                    help="Query the expiry date of an existing slot:")
+    
+    parser_subscribe.add_argument("--url", type=str,
+                              dest='service_url',
+                              default="https://mainstay.xyz",
+                              help="URL for the Mainstay connector service. Default: %(default)s")
+
     parser_attest.set_defaults(cmd_func=mst.cmds.attest_command)
     parser_fetch.set_defaults(cmd_func=mst.cmds.fetch_command)
     parser_verify.set_defaults(cmd_func=mst.cmds.verify_command)
@@ -300,6 +332,7 @@ def parse_msc_args(raw_args):
     parser_config.set_defaults(cmd_func=mst.cmds.config_command)
     parser_keygen.set_defaults(cmd_func=mst.cmds.keygen_command)
     parser_info.set_defaults(cmd_func=mst.cmds.info_command)
+    parser_subscribe.set_defaults(cmd_func=mst.cmds.subscribe_command)
 
     args = parser.parse_args(raw_args)
     args.verbosity = args.verbose - args.quiet
