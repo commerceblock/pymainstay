@@ -1153,20 +1153,30 @@ def subscribe_command(args):
     if args.rate:
         rstring = "/api/v1/feerate"
         sproof = get_mainstay_api(args.service_url,rstring)
-        millisats = sproof["response"]["fee_rate"]
-        logging.info("Rate: " + str(millisats_to_btc(millisats)) + " BTC per month")
+        if "response" in sproof:
+            millisats = sproof["response"]["fee_rate"]
+            logging.info("Rate: " + str(millisats_to_btc(millisats)) + " BTC per month")
+        else:
+            logging.error("Error: " + sproof["error"])
     
     if args.payment:
         rstring = "/api/v1/token/init?value="+str(btc_to_millisats(args.payment))
         sproof = get_mainstay_api(args.service_url,rstring)
-        logging.info("Token ID: " + sproof["response"]["token_id"])
-        logging.info("Invoice: " + sproof["response"]["lightning_invoice"]["bolt11"])
+        if "response" in sproof:
+            logging.info("Token ID: " + sproof["response"]["token_id"])
+            logging.info("Invoice: " + sproof["response"]["lightning_invoice"]["bolt11"])
+        else:
+            logging.error("Error: " + sproof["error"])
 
     if args.verify:
         rstring = "/api/v1/token/verify?token_id="+str(args.verify)
         sproof = get_mainstay_api(args.service_url,rstring)
-        logging.info("Amount: " + str(sproof["response"]["amount"]))
-        logging.info("Verified: " + str(sproof["response"]["confirmed"]))
+        if "response" in sproof:
+            logging.info("Amount: " + str(sproof["response"]["amount"]))
+            logging.info("Verified: " + str(sproof["response"]["confirmed"]))
+        else:
+            logging.error("Error: " + sproof["error"])
+
 
     if args.create:
         if args.slot:
@@ -1177,17 +1187,23 @@ def subscribe_command(args):
         api_path = '/api/v1/spendtoken'
         response = requests.post(args.service_url+api_path, data=json.dumps(data))
         rdata = response.json()
-        logging.info("Slot: " + str(rdata["response"]["slot_id"]))
-        logging.info("Expiry: " + str(rdata["response"]["expiry_date"]))
-        settings["api_token"] = args.create
-        settings["slot"] = slot
-        save_settings(settings)
+        if "response" in rdata:
+            logging.info("Slot: " + str(rdata["response"]["slot_id"]))
+            logging.info("Expiry: " + str(rdata["response"]["expiry_date"]))
+            settings["api_token"] = args.create
+            settings["slot"] = slot
+            save_settings(settings)
+        else:
+            logging.error("Error: " + rdata["error"])
         return
     
     if args.slot:
         rstring = "/api/v1/slotexpiry?slot_id="+str(args.slot)
         sproof = get_mainstay_api(args.service_url,rstring)
         logging.info("Slot: " + args.slot)
-        logging.info("Expiry: " + str(sproof["response"]["expiry_date"]))
+        if "response" in sproof:
+            logging.info("Expiry: " + str(sproof["response"]["expiry_date"]))
+        else:
+            logging.error("Error: " + sproof["error"])
 
     return
