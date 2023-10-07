@@ -28,8 +28,8 @@ import mst.ecc as ecc
 import mst.rpchost as rpc
 from mst.ecc import bfh, hfu,  bh2u, to_bytes, sha256, Hash, hash_160
 
-BASE_PUBKEYS = ["03639a65bfb3dd5a579e65231a4e70327aba358e956d6e10f7ea2e25dd631e4d66","024f714a1b93697c5a3865259ac3a865bb306e8b720c3bec46bae3298ef3fa7964","035ea174407b61b85fc83993084c471f78095779737a75adf2a2e52cdd2a36edd3"]
-MAINSTAY_CHAINCODES = ["8c57ec95db9ddab3b17ea5ae8c1411bbc0859d1a5262ff67d475cc880e14cfd9","087c28f8989d4a5e692127dbaeffc86b7d2d44b878b3a585b2c98967c854ed8d","2f94eeb596c3c7d9a5746b17150412a3c5f4f9f999ffb2395fc59a14bcfc4271"]
+BASE_PUBKEYS = ["024f714a1b93697c5a3865259ac3a865bb306e8b720c3bec46bae3298ef3fa7964"]
+MAINSTAY_CHAINCODES = ["087c28f8989d4a5e692127dbaeffc86b7d2d44b878b3a585b2c98967c854ed8d"]
 
 APPDIRS = appdirs.AppDirs('msc','mainstay')
 
@@ -66,8 +66,8 @@ def multisig_script(public_keys: Sequence[str], m: int) -> str:
     n = len(public_keys)
     assert n <= 15
     assert m <= n
-    op_m = '52'
-    op_n = '53'
+    op_m = '51'
+    op_n = '51'
     keylist = ['21' + k for k in public_keys]
     return op_m + ''.join(keylist) + op_n + 'ae'
 
@@ -120,7 +120,7 @@ def tweak_script(path):
         for index in path:
             cK, c = CKD_pub(cK, c, int.from_bytes(index,'big'))
         tweaked_keys.append(bh2u(cK))
-    tweaked_script = multisig_script(tweaked_keys, 2)
+    tweaked_script = multisig_script(tweaked_keys, 1)
     return hash_160(bytes.fromhex(tweaked_script))
 
 def verify_p2c_commitment(proof, tx):

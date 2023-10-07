@@ -19,7 +19,7 @@ setup(
 
     # The project's main homepage.
     url='https://github.com/commerceblock/pymainstay',
-    download_url='https://github.com/commerceblock/pymainstay/archive/0.1.1.tar.gz',
+    download_url='https://github.com/commerceblock/pymainstay/archive/0.2.0.tar.gz',
 
     # Author details
     author='CommerceBlock',
