@@ -66,8 +66,8 @@ def multisig_script(public_keys: Sequence[str], m: int) -> str:
     n = len(public_keys)
     assert n <= 15
     assert m <= n
-    op_m = '52'
-    op_n = '53'
+    op_m = '51'
+    op_n = '51'
     keylist = ['21' + k for k in public_keys]
     return op_m + ''.join(keylist) + op_n + 'ae'
 
@@ -149,6 +149,8 @@ def verify_p2c_commitment(proof, tx):
         sys.exit(1)
     commitment_path = get_path_from_commitment(bytes.fromhex(rev_hex(commitment)))
     tweaked_addr = 'a914' + tweak_script(commitment_path).hex() + '87'
+    print(tweaked_addr)
+    print(script_addr)
     if script_addr == tweaked_addr:
         return True
     else:
