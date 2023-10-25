@@ -129,7 +129,7 @@ def parse_msc_args(raw_args):
     verify_group  = parser_verify.add_mutually_exclusive_group()
 
     verify_group.add_argument('-f', '--file', type=str,
-                              dest='file',
+                              dest='filename',
                               help="Verify the commitment of the checksum of the specified file.")
 
     verify_group.add_argument('-r', '--read', type=str,
