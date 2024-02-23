@@ -1000,7 +1000,7 @@ def sync_command(args):
     prevh = 0
     sblocks = []
     for sproof in nseq:
-        if commitment == '0'*64: continue
+        if sproof["commitment"] == '0'*64: continue
         try:
             block = connection.call('getblock',sproof["commitment"])
         except:
@@ -1154,13 +1154,13 @@ def subscribe_command(args):
         rstring = "/api/v1/feerate"
         sproof = get_mainstay_api(args.service_url,rstring)
         if "response" in sproof:
-            millisats = sproof["response"]["fee_rate"]
-            logging.info("Rate: " + str(millisats_to_btc(millisats)) + " BTC per month")
+            euros = sproof["response"]["fee_rate"]
+            logging.info("Rate: " + euros + " EUR per month")
         else:
             logging.error("Error: " + sproof["error"])
     
     if args.payment:
-        rstring = "/api/v1/token/init?value="+str(btc_to_millisats(args.payment))
+        rstring = "/api/v1/token/init?value="+str(args.payment)
         sproof = get_mainstay_api(args.service_url,rstring)
         if "response" in sproof:
             logging.info("Token ID: " + sproof["response"]["token_id"])
