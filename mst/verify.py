@@ -28,8 +28,8 @@ import mst.ecc as ecc
 import mst.rpchost as rpc
 from mst.ecc import bfh, hfu,  bh2u, to_bytes, sha256, Hash, hash_160
 
-BASE_PUBKEY = "14df7ece79e83f0f479a37832d770294014edc6884b0c8bfa2e0aaf51fb00229"
-MAINSTAY_CHAINCODE = "038695a7bf3a49d951d7e71bb0ca54158ca1a020e209653706c0dcad344f9b9d05"
+BASE_PUBKEY = "03e31877426407458858948993f6af1fc70dd2928a328dec6cdf5c215770e40ed2"
+MAINSTAY_CHAINCODE = "14df7ece79e83f0f479a37832d770294014edc6884b0c8bfa2e0aaf51fb00229"
 
 APPDIRS = appdirs.AppDirs('msc','mainstay')
 
