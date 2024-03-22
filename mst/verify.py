@@ -28,8 +28,8 @@ import mst.ecc as ecc
 import mst.rpchost as rpc
 from mst.ecc import bfh, hfu,  bh2u, to_bytes, sha256, Hash, hash_160
 
-BASE_PUBKEYS = ["031dd94c5262454986a2f0a6c557d2cbe41ec5a8131c588b9367c9310125a8a7dc"]
-MAINSTAY_CHAINCODES = ["0a090f710e47968aee906804f211cf10cde9a11e14908ca0f78cc55dd190ceaa"]
+BASE_PUBKEY = "14df7ece79e83f0f479a37832d770294014edc6884b0c8bfa2e0aaf51fb00229"
+MAINSTAY_CHAINCODE = "038695a7bf3a49d951d7e71bb0ca54158ca1a020e209653706c0dcad344f9b9d05"
 
 APPDIRS = appdirs.AppDirs('msc','mainstay')
 
@@ -61,15 +61,6 @@ def hmac_oneshot(key: bytes, msg: bytes, digest) -> bytes:
         return hmac.digest(key, msg, digest)
     else:
         return hmac.new(key, msg, digest).digest()
-
-def multisig_script(public_keys: Sequence[str], m: int) -> str:
-    n = len(public_keys)
-    assert n <= 15
-    assert m <= n
-    op_m = '51'
-    op_n = '51'
-    keylist = ['21' + k for k in public_keys]
-    return op_m + ''.join(keylist) + op_n + 'ae'
 
 def CKD_pub(cK, c, n):
     if n < 0:
@@ -113,15 +104,12 @@ def get_path_from_commitment(com):
     return derivation_path
 
 def tweak_script(path):
-    tweaked_keys = []
-    for ikey in range(len(BASE_PUBKEYS)):
-        cK = bytes.fromhex(BASE_PUBKEYS[ikey])
-        c = bytes.fromhex(MAINSTAY_CHAINCODES[ikey])
-        for index in path:
-            cK, c = CKD_pub(cK, c, int.from_bytes(index,'big'))
-        tweaked_keys.append(bh2u(cK))
-    tweaked_script = multisig_script(tweaked_keys, 1)
-    return hash_160(bytes.fromhex(tweaked_script))
+    cK = bytes.fromhex(BASE_PUBKEY)
+    c = bytes.fromhex(MAINSTAY_CHAINCODE)
+    for index in path:
+        cK, c = CKD_pub(cK, c, int.from_bytes(index,'big'))
+    tweaked_key = bh2u(cK)
+    return hash_160(bytes.fromhex(tweaked_key))
 
 def verify_p2c_commitment(proof, tx):
     #verify the pay-to-contract proof merkle root in the Bitcoin transaction
@@ -139,7 +127,7 @@ def verify_p2c_commitment(proof, tx):
     except:
         nout = len(tx["outputs"])
     if nout != 1:
-        logging.error('ERROR: staychain TxID '+sproof["txid"]+' has more than one output')
+        logging.error('ERROR: staychain TxID '+proof["txid"]+' has more than one output')
         logging.error('Staychain verification failed.')
         sys.exit(1)
     try:
@@ -148,9 +136,7 @@ def verify_p2c_commitment(proof, tx):
         logging.error('ERROR: slot proof malformation')
         sys.exit(1)
     commitment_path = get_path_from_commitment(bytes.fromhex(rev_hex(commitment)))
-    tweaked_addr = 'a914' + tweak_script(commitment_path).hex() + '87'
-    print(tweaked_addr)
-    print(script_addr)
+    tweaked_addr = '0014' + tweak_script(commitment_path).hex()
     if script_addr == tweaked_addr:
         return True
     else:

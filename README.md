@@ -96,11 +96,11 @@ To get subscription rates:
 
 	$ msc subscribe -r
 
- 	Rate: 0.0001 BTC per month
+ 	Rate: 5 EUR per month
   
-To initiate a payment and generate a token to either create or renew a commitment slot (with value 0.001):
+To initiate a payment and generate a token to either create or renew a commitment slot (with value 5 EUR):
 
-	$ msc subscribe -p 0.001
+	$ msc subscribe -p 5
 
  	Token ID: e2259b7c-d279-4b28-a085-2a0bbf4cff45
   	Invoice: lnbc15u1p3xnhl2pp5jptserfk3zk4qy42tlucycrfwxhydvlemu9pqr93tuzlv9cc7g3sdqsvfhkcap3xyhx7un8cqzpgxqzjcsp5f8c52y2stc300gl6s4xswtjpc37hrnnr3c9wvtgjfuvqmpm35evq9qyyssqy4lgd8tj637qcjp05rdpxxykjenthxftej7a2zzmwrmrl70fyj9hvj0rewhzj7jfyuwkwcg9g2jpwtk3wkjtwnkdks84hsnu8xps5vsq4gj5hs
@@ -109,7 +109,7 @@ Once payment is made using the invoice, to verify:
 
 	$ msc subscribe -v e2259b7c-d279-4b28-a085-2a0bbf4cff45
 
- 	Amount: 0.001
+ 	Amount: 5
   	Verified: true
 
 To then create a new slot:
