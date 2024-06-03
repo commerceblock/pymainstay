@@ -47,5 +47,5 @@ smmap==3.0.4
 snaptime==0.2.4
 tzlocal==2.1
 uritemplate==3.0.1
-urllib3==1.25.9
+urllib3==1.26.5
 Werkzeug==1.0.1
